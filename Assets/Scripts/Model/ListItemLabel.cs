@@ -1,13 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-using static Enums;
+using UnityEngine.EventSystems;
 
-public class ListItemLabel : MonoBehaviour
+public class ListItemLabel : MonoBehaviour, IPointerDownHandler
 {
     public Text labelText;
     public ConfigurationData data;
+    public ItemListController controller;
+
+    public void OnPointerDown(PointerEventData eventData) {
+        if (eventData.clickCount == 2) {
+            CreationManager.Instance.LoadConfigurationItem(this);
+            eventData.clickCount = 0;
+        }
+    }
 
     public void SaveData(ConfigurationData data) {
         this.data = data;

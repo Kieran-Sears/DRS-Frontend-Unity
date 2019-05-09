@@ -2,81 +2,111 @@
 using System.Xml.Serialization;
 using System.Collections.Generic;
 
-public abstract class Value { }
-public abstract class ConfigurationData { }
+
+public abstract class ConfigurationData {
+    public abstract string GetLabel();
+}
+public abstract class Value : ConfigurationData { } 
 
 [XmlRoot("Configuration")]
 [Serializable]
 public class Configurations : ConfigurationData {
 
-    [XmlAttribute("name")]
-    public string name;
+    [XmlAttribute("label")]
+    private string label;
 
     [XmlAttribute("ID")]
-    public int ID { get; set; }
+    private string ID { get; set; }
   
     [XmlElement("SimulationConfiguration")]
-    public float simulationConfiguration { get; set; }
+    private float simulationConfiguration { get; set; }
 
     [XmlArray("CustomerConfigurations")]
     [XmlArrayItem("CustomerConfiguration")]
-    public List<CustomerConfigurationData> CustomerConfigurations = new List<CustomerConfigurationData>();
+    private List<CustomerConfigurationData> customerConfigurations = new List<CustomerConfigurationData>();
 
     [XmlArray("ActionConfigurations")]
     [XmlArrayItem("ActionConfiguration")]
-    public List<ActionConfigurationData> actionConfigurations = new List<ActionConfigurationData>();
+    private List<ActionConfigurationData> actionConfigurations = new List<ActionConfigurationData>();
 
+    public Configurations(string label, float simulationConfiguration, List<CustomerConfigurationData> customerConfigurations, List<ActionConfigurationData> actionConfigurations) {
+        this.label = label;
+        this.ID = Guid.NewGuid().ToString();
+        this.simulationConfiguration = simulationConfiguration;
+        this.customerConfigurations = customerConfigurations;
+        this.actionConfigurations = actionConfigurations;
+    }
+
+    public List<CustomerConfigurationData> GetCustomerConfigs() {
+        return customerConfigurations;
+    }
+
+    public override string GetLabel() {
+        return label;
+    }
 }
 
 [Serializable]
 public class CustomerConfigurationData : ConfigurationData {
 
-    [XmlAttribute("averageArrears")]
-    public string averageArrears;
-
-    [XmlAttribute("minRangeArrears")]
-    public string minRangeArrears;
-
-    [XmlAttribute("maxRangeArrears")]
-    public string maxRangeArrears;
-
-    [XmlAttribute("variationOnArrears")]
-    public string variationOnArrears;
+    [XmlAttribute("label")]
+    private string label;
 
     [XmlArray("AttributeConfigurations")]
     [XmlArrayItem("AttributeConfiguration")]
-    public AttributeConfigurationData[] attributeConfigurations;
+    private List<AttributeConfigurationData> attributeConfigurations;
 
-    public CustomerConfigurationData(string averageArrears, string minRangeArrears, string maxRangeArrears, string variationOnArrears, AttributeConfigurationData[] attributeConfigurations) {
-        this.averageArrears = averageArrears;
-        this.minRangeArrears = minRangeArrears;
-        this.maxRangeArrears = maxRangeArrears;
-        this.variationOnArrears = variationOnArrears;
+    public CustomerConfigurationData(string label, List<AttributeConfigurationData> attributeConfigurations) {
+        this.label = label;
         this.attributeConfigurations = attributeConfigurations;
+    }
+
+    public override string GetLabel() {
+        return label;
+    }
+
+    public List<AttributeConfigurationData> GetAttributeConfigurations() {
+        return attributeConfigurations;
     }
 }
 
 [Serializable]
 public class ActionConfigurationData : ConfigurationData {
+    [XmlAttribute("label")]
+    private string label;
 
+    public ActionConfigurationData(string label) {
+        this.label = label;
+    }
+
+    public override string GetLabel() {
+        return label;
+    }
 }
 
 
 [Serializable]
 public class AttributeConfigurationData : ConfigurationData {
 
-    [XmlAttribute("name")]
-    public string name;
+    [XmlAttribute("label")]
+    private string label;
 
     [XmlAttribute("value")]
-    public Value value;
+    private Value value;
 
     public AttributeConfigurationData(string name, Value value) {
-        this.name = name;
+        this.label = name;
         this.value = value;
     }
-}
 
+    public override string GetLabel() {
+        return label;
+    }
+
+    public Value GetValue() {
+        return value;
+    }
+}
 
 
 //case class Configurations(

@@ -4,47 +4,67 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-public class AttributeCreationForm : MonoBehaviour
-{
+public class AttributeCreationForm : CreationForm {
     public InputField nameInput;
     public Value value;
-    public GameObject scalarPrefab;
-    public GameObject categoricalPrefab;
+
+    public Button scalarButton;
+    public Button categoricalButton;
+  
+    public ScalarCreationForm scalarForm;
+    public CategoricalCreationForm categoricalForm;
+
     public Text summaryTextbox;
+
     public Button submitButton;
+    public Button cancelButton;
 
-    public delegate void SubmitAttributeDelegate(AttributeConfigurationData data);
-    public SubmitAttributeDelegate submitAttributeDelegate;
 
-    public delegate void NameChangeDelegate(string name);
-    public NameChangeDelegate nameChangeDelegate;
 
-    public void Display(ListItemLabel nameLabel) {
-        gameObject.SetActive(true); 
-        nameChangeDelegate += nameLabel.UpdateText;
-        nameInput.onEndEdit.AddListener((string newName) => nameChangeDelegate(newName));
+    public void Start() {
+        cancelButton.onClick.AddListener(() => gameObject.SetActive(false));
+    }
 
-        submitAttributeDelegate += nameLabel.SaveData;
-        submitAttributeDelegate += (x) => {
-            gameObject.SetActive(false);
-            Debug.Log("Attribute Creation Complete, Saving Data");
-        };
-        submitButton.onClick.AddListener(() => submitAttributeDelegate(new AttributeConfigurationData(nameInput.text, value)));
+    override public void Display() {
+        ClearFields();
+        gameObject.SetActive(true);
+    
+        nameInput.onEndEdit.AddListener((string newName) => renameDelegate(newName));
+
+        submitButton.onClick.AddListener(() => {
+            submissionDelegate(new AttributeConfigurationData(nameInput.text, value));
+        });
+    }
+
+    public override void ClearFields() {
+        nameInput.text = "";
+        value = null;
+        summaryTextbox.text = @"Please select whether this attribute is a scalar value or a categorical one below...\n\ni.e.\n\n
+Categorical: A value which can be classified and put into a category of it's own amongst a set. e.g. Home-ownership: Mortgage, Private Rent, Council Housing, etc.\n
+Scalar: A value which has an exact measure and falls within a continuous spectrum.e.g.Age: current(Optional) = 32, Minimum Age Range = 18, Maximum Age Range = 86.\n\n
+(Note: An option to vary the value over time is also presented for scalar values)";
+    }
+
+    public override void Prepopulate(ConfigurationData data) {
+        AttributeConfigurationData attribute = data as AttributeConfigurationData;
+        nameInput.text = attribute.GetLabel();
+        value = attribute.GetValue();
     }
 
     public void CreateScalar() {
-        GameObject scalarGO = Instantiate(scalarPrefab, transform);
-        ScalarCreationForm scalar = scalarGO.GetComponent<ScalarCreationForm>();
-        scalar.Display(DisplayValueSummary);
+        scalarForm.submissionDelegate += GetValue;
+        scalarForm.submissionDelegate += (x) => scalarForm.gameObject.SetActive(false);
+        scalarForm.Display();
     }
 
     public void CreateCategorical() {
-        GameObject categoricalGO = Instantiate(categoricalPrefab, transform);
-        Categorical categorical = categoricalGO.GetComponent<Categorical>();
-        categorical.Display(DisplayValueSummary);
+        categoricalForm.submissionDelegate += GetValue;
+        categoricalForm.submissionDelegate += (x) => categoricalForm.gameObject.SetActive(false);
+        categoricalForm.Display();
     }
 
-    public void DisplayValueSummary(Value value) {
+    public void GetValue(ConfigurationData value) {
+        this.value = value as Value;
         summaryTextbox.text = value.ToString();
     }
 }

@@ -5,8 +5,17 @@ using UnityEngine;
 public class Enums : MonoBehaviour
 {
     public enum ConfigItemTypes {
-        CUSTOMER,
-        ACTION,
-        ATTRIBUTE
+        Customer,
+        Action,
+        Attribute,
+        Categorical,
+        Scalar
+    }
+
+    [System.Serializable]
+    public enum VarianceType {
+        None,
+        Increasing,
+        Decreasing
     }
 }

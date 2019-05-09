@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Main : MonoBehaviour {
 
@@ -15,7 +16,6 @@ public class Main : MonoBehaviour {
     }
 
     public void LoadWelcomeUI() {
-        welcomePanel.SetActive(true);
         configurePanel.SetActive(false);
         trainPanel.SetActive(false);
         testPanel.SetActive(false);
@@ -23,34 +23,18 @@ public class Main : MonoBehaviour {
     }
 
     public void LoadConfigurationUI() {
-        welcomePanel.SetActive(false);
         configurePanel.SetActive(true);
-        trainPanel.SetActive(false);
-        testPanel.SetActive(false);
-        playPanel.SetActive(false);
     }
 
     public void LoadTrainUI() {
-        welcomePanel.SetActive(false);
-        configurePanel.SetActive(false);
         trainPanel.SetActive(true);
-        testPanel.SetActive(false);
-        playPanel.SetActive(false);
     }
 
     public void LoadTestUI() {
-        welcomePanel.SetActive(false);
-        configurePanel.SetActive(false);
-        trainPanel.SetActive(false);
         testPanel.SetActive(true);
-        playPanel.SetActive(false);
     }
 
     public void LoadPlayUI() {
-        welcomePanel.SetActive(false);
-        configurePanel.SetActive(false);
-        trainPanel.SetActive(false);
-        testPanel.SetActive(false);
         playPanel.SetActive(true);
     }
 }

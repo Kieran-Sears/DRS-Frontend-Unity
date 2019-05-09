@@ -8,10 +8,16 @@ public class ItemListController : MonoBehaviour
 {
     public GameObject scrollList;
     public ConfigItemTypes type;
+    public List<ListItemLabel> listItems = new List<ListItemLabel>();
 
     public void AddItem() {
         Debug.Log("Creating Item " + type);
-        CreationManager.Instance.CreateConfigurationItem(scrollList.transform, type);
+        listItems.Add(CreationManager.Instance.CreateConfigurationItem(this));
+    }
+
+    public void AddItem(ConfigurationData data) {
+        Debug.Log("Creating Item " + type);
+        listItems.Add(CreationManager.Instance.CreateConfigurationItem(this, data));
     }
 
     public void RemoveItem() {
@@ -21,6 +27,27 @@ public class ItemListController : MonoBehaviour
                 Destroy(s.gameObject);
             }
         }
+    }
+
+    public string[] GetLabels() {
+       Text[] texts = scrollList.GetComponentsInChildren<Text>();
+        string[] labels = new string[texts.Length];
+        for (int i = 0; i < texts.Length; i++) {
+            labels[i] = texts[i].text;
+        }
+        return labels;
+    }
+
+    public List<ConfigurationData> GetData() {
+        return listItems.ConvertAll((x) => x.data);
+    }
+
+    public void ClearItems() {
+        ListItemLabel[] items = scrollList.GetComponentsInChildren<ListItemLabel>();
+        foreach (var item in items) {
+            Destroy(item.gameObject);
+        }
+
     }
 
     private string UpperFirst(string text) {
