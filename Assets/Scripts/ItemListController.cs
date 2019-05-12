@@ -1,23 +1,23 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static Enums;
 
-public class ItemListController : MonoBehaviour
-{
+public class ItemListController : FormCaller {
+    public GameObject listItemPrefab;
+
     public GameObject scrollList;
-    public ConfigItemTypes type;
     public List<ListItemLabel> listItems = new List<ListItemLabel>();
 
     public void AddItem() {
-        Debug.Log("Creating Item " + type);
-        listItems.Add(CreationManager.Instance.CreateConfigurationItem(this));
+        ListItemLabel label = Instantiate(listItemPrefab, scrollList.transform).GetComponent<ListItemLabel>();
+        label.controller = this;
+        listItems.Add(CreationManager.Instance.CreateConfigurationItem(this, label) as ListItemLabel);
     }
 
     public void AddItem(ConfigurationData data) {
-        Debug.Log("Creating Item " + type);
-        listItems.Add(CreationManager.Instance.CreateConfigurationItem(this, data));
+        ListItemLabel label = Instantiate(listItemPrefab, scrollList.transform).GetComponent<ListItemLabel>();
+        label.controller = this;
+        listItems.Add(CreationManager.Instance.CreateConfigurationItem(this, label, data) as ListItemLabel);
     }
 
     public void RemoveItem() {
@@ -47,7 +47,24 @@ public class ItemListController : MonoBehaviour
         foreach (var item in items) {
             Destroy(item.gameObject);
         }
+    }
 
+    public override CreationForm SetFormDelegates(CreationForm form, ValueHolder holder) {
+        form.cancelationDelegate += () => {
+            form.formFieldChangeDelegate -= holder.UpdateDisplay;
+            form.ClearFields();
+            form.gameObject.SetActive(false);
+            Destroy(holder.gameObject);
+        };
+
+        form.formFieldChangeDelegate += holder.UpdateDisplay;
+        form.submissionDelegate += holder.SaveData;
+        form.submissionDelegate += (x) => {
+            form.formFieldChangeDelegate -= holder.UpdateDisplay;
+            form.ClearFields();
+            form.gameObject.SetActive(false);
+        };
+        return form;
     }
 
     private string UpperFirst(string text) {

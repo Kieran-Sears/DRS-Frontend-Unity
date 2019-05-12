@@ -90,8 +90,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3891887bcd4380f489e428ce14074583, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scrollList: {fileID: 3282735624706309839}
   type: 0
+  listItemPrefab: {fileID: 8878997171719572496, guid: 888064b48841d874a8e2e5d24e8ca257,
+    type: 3}
+  scrollList: {fileID: 3282735624706309839}
+  listItems: []
 --- !u!114 &7349635473845642923
 MonoBehaviour:
   m_ObjectHideFlags: 0

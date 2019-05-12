@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine.UI;
 using static Enums;
 
 public class ScalarCreationForm : CreationForm
@@ -14,13 +11,8 @@ public class ScalarCreationForm : CreationForm
     public Button cancelButton;
 
     public void Start() {
-        cancelButton.onClick.AddListener(() => gameObject.SetActive(false));
-    }
-
-    override public void Display() {
-        gameObject.SetActive(true);
-        ClearFields();
-        submitButton.onClick.AddListener(() => submissionDelegate(new ScalarValue(startLabel.text, minLabel.text, maxLabel.text, (VarianceType)varianceLabel.value)));
+        cancelButton.onClick.AddListener(() => cancelationDelegate());
+        submitButton.onClick.AddListener(() => Submit());
     }
 
     public override void ClearFields() {
@@ -32,33 +24,25 @@ public class ScalarCreationForm : CreationForm
 
     public override void Prepopulate(ConfigurationData data) {
         ScalarValue scalar = data as ScalarValue;
-        startLabel.text = scalar.start;
-        minLabel.text = scalar.min;
-        maxLabel.text = scalar.max;
+        startLabel.text = scalar.start.ToString();
+        minLabel.text = scalar.min.ToString();
+        maxLabel.text = scalar.max.ToString();
         varianceLabel.value = (int) scalar.variance;
     }
-}
 
-
-public class ScalarValue : Value {
-
-    public string start;
-    public string min;
-    public string max;
-    public VarianceType variance;
-
-    public ScalarValue(string start, string min, string max, VarianceType variance) {
-        this.start = start;
-        this.min = min;
-        this.max = max;
-        this.variance = variance;
+    private void Submit() {
+        string validation = Validate();
+        if (validation == "OK") {
+            submissionDelegate(new ScalarValue(double.Parse(minLabel.text), double.Parse(maxLabel.text), (VarianceType)varianceLabel.value, double.Parse(startLabel.text)));
+        } else {
+            errorMessage.DisplayError(validation);
+        };
     }
 
-    public override string ToString() {
-        return $"start: {start}\nmin: {min}\nmax: {max}\nvariance: {variance}";
-    }
-
-    public override string GetLabel() {
-        return "ScalarValueLabel";
+    private string Validate() {
+        string ret = "OK";
+        ret = string.IsNullOrEmpty(minLabel.text) ? "Please assign a Customer Name" : ret;
+        ret = string.IsNullOrEmpty(maxLabel.text) ? "Please assign a Customer Name" : ret;
+        return ret;
     }
 }

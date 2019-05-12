@@ -1,132 +1,149 @@
 ﻿using System;
-using System.Xml.Serialization;
 using System.Collections.Generic;
-
+using static Enums;
 
 public abstract class ConfigurationData {
-    public abstract string GetLabel();
+    public string id;
 }
+
 public abstract class Value : ConfigurationData { } 
 
-[XmlRoot("Configuration")]
-[Serializable]
 public class Configurations : ConfigurationData {
 
-    [XmlAttribute("label")]
-    private string label;
+    public SimulationConfigurationData simulationConfiguration;
+    public List<CustomerConfigurationData> customerConfigurations;
+    public List<ActionConfigurationData> actionConfigurations;
 
-    [XmlAttribute("ID")]
-    private string ID { get; set; }
-  
-    [XmlElement("SimulationConfiguration")]
-    private float simulationConfiguration { get; set; }
-
-    [XmlArray("CustomerConfigurations")]
-    [XmlArrayItem("CustomerConfiguration")]
-    private List<CustomerConfigurationData> customerConfigurations = new List<CustomerConfigurationData>();
-
-    [XmlArray("ActionConfigurations")]
-    [XmlArrayItem("ActionConfiguration")]
-    private List<ActionConfigurationData> actionConfigurations = new List<ActionConfigurationData>();
-
-    public Configurations(string label, float simulationConfiguration, List<CustomerConfigurationData> customerConfigurations, List<ActionConfigurationData> actionConfigurations) {
-        this.label = label;
-        this.ID = Guid.NewGuid().ToString();
+    public Configurations(SimulationConfigurationData simulationConfiguration, List<CustomerConfigurationData> customerConfigurations, List<ActionConfigurationData> actionConfigurations) {
+        this.id = Guid.NewGuid().ToString();
         this.simulationConfiguration = simulationConfiguration;
         this.customerConfigurations = customerConfigurations;
         this.actionConfigurations = actionConfigurations;
     }
-
-    public List<CustomerConfigurationData> GetCustomerConfigs() {
-        return customerConfigurations;
+  
+    public override string ToString() {
+        string cusConfigs = "";
+        foreach (CustomerConfigurationData cus in customerConfigurations) {
+            cusConfigs += $"{cus.ToString()}\n";
+        }
+        string actConfigs = "";
+        foreach (ActionConfigurationData act in actionConfigurations) {
+            actConfigs += $"{act.ToString()}\n";
+        }
+        return $"Configurations:\n" +
+            $"    label:\n  {id}\n" +
+            $"    simulation configuration:\n   {simulationConfiguration.ToString()}\n" +
+            $"    customer configurations:\n    {cusConfigs}\n" +
+            $"    action configurations:\n      {actConfigs}\n";
     }
 
-    public override string GetLabel() {
-        return label;
-    }
+   
 }
 
-[Serializable]
+public class SimulationConfigurationData : ConfigurationData {
+
+    public int startTime;
+    public int endTime;
+    public int numberOfCustomers;
+
+    public SimulationConfigurationData(string label, int startTime, int endTime, int numberOfCustomers) {
+        this.id = label;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.numberOfCustomers = numberOfCustomers;
+    }
+
+    public override string ToString() {
+        return $"Simulation Configuration:\n    Label:  {id}\n  start time: {startTime}\n   end time: {endTime}\n   number of customers: {numberOfCustomers}\n";
+    }
+
+}
+
 public class CustomerConfigurationData : ConfigurationData {
 
-    [XmlAttribute("label")]
-    private string label;
-
-    [XmlArray("AttributeConfigurations")]
-    [XmlArrayItem("AttributeConfiguration")]
-    private List<AttributeConfigurationData> attributeConfigurations;
+    public List<AttributeConfigurationData> attributeConfigurations;
 
     public CustomerConfigurationData(string label, List<AttributeConfigurationData> attributeConfigurations) {
-        this.label = label;
+        this.id = label;
         this.attributeConfigurations = attributeConfigurations;
     }
-
-    public override string GetLabel() {
-        return label;
-    }
-
-    public List<AttributeConfigurationData> GetAttributeConfigurations() {
-        return attributeConfigurations;
+    public override string ToString() {
+        string attConfigs = "";
+        foreach (AttributeConfigurationData att in attributeConfigurations) {
+            attConfigs += $"{att.ToString()}\n";
+        }
+        return $"CustomerConfiguration:\n   label:{id}\n   attributes:{attConfigs}";
     }
 }
 
-[Serializable]
 public class ActionConfigurationData : ConfigurationData {
-    [XmlAttribute("label")]
-    private string label;
-
     public ActionConfigurationData(string label) {
-        this.label = label;
-    }
-
-    public override string GetLabel() {
-        return label;
+        this.id = label;
     }
 }
 
-
-[Serializable]
 public class AttributeConfigurationData : ConfigurationData {
 
-    [XmlAttribute("label")]
-    private string label;
+    public Value value;
 
-    [XmlAttribute("value")]
-    private Value value;
-
-    public AttributeConfigurationData(string name, Value value) {
-        this.label = name;
+    public AttributeConfigurationData(string label, Value value) {
+        this.id = label;
         this.value = value;
     }
 
-    public override string GetLabel() {
-        return label;
-    }
-
-    public Value GetValue() {
-        return value;
+    public override string ToString() {
+        return $"AttributeConfiguration:\n  label: {id}\n    value: {value.ToString()}";
     }
 }
 
+public class ScalarValue : Value {
+    public string kind;
+    public double start;
+    public double min;
+    public double max;
+    public VarianceType variance;
 
-//case class Configurations(
-//  customer: List[CustomerConfig] = Nil,
-//  simulation: SimulationConfig = SimulationConfig()
-//)
-//
-//case class CustomerConfig(
-//  name: String = "Customer" + UUID.randomUUID(),
-//  arrears: Scalar,
-//  attributes: List[Attribute] = Nil,
-//  proportion: Int = 100,
-//  appearance: Variance.Value = Variance.None,
-//  assignedLabel: Int,
-//  kind: String = "customer")
-//
-//case class SimulationConfig(
-//  startState: Option[State] = None,
-//  startTime: Int = 0,
-//  endTime: Option[Int] = None,
-//  debtVarianceOverTime: Variance.Value = Variance.None,
-//  numberOfCustomers: Int = 10,
-//  kind: String = "simulation")
+    public ScalarValue(double min, double max, VarianceType variance, double start = -1) {
+        this.id = Guid.NewGuid().ToString();
+        this.kind = "scalar";
+        this.start = start;
+        this.min = min;
+        this.max = max;
+        this.variance = variance;
+    }
+
+    public override string ToString() {
+        return $"ScalarValue:\n start: {start}\n    min: {min}\n    max: {max}\n    variance: {variance}";
+    }
+
+}
+
+public class CategoricalValue : Value {
+    public string kind;
+    public List<CategoricalOption> options;
+
+    public CategoricalValue(List<CategoricalOption> options) {
+        this.id = Guid.NewGuid().ToString();
+        this.kind = "categorical";
+        this.options = options;
+    }
+    public override string ToString() {
+        string catConfigs = "";
+        foreach (CategoricalOption cat in options) {
+            catConfigs += $"{cat.ToString()}, ";
+        }
+
+        return $"CategoricalValue:\n    options: {catConfigs.ToString()}";
+    }
+}
+
+public class CategoricalOption : ConfigurationData {
+
+    public CategoricalOption(string label) {
+        this.id = label;
+    }
+
+    public override string ToString() {
+        return id;
+    }
+}

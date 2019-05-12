@@ -9,7 +9,9 @@ public class Enums : MonoBehaviour
         Action,
         Attribute,
         Categorical,
-        Scalar
+        Scalar,
+        CategoricalOption,
+        Configuration
     }
 
     [System.Serializable]

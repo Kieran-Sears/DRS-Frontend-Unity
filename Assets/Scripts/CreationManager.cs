@@ -4,16 +4,32 @@ using System.Collections.Generic;
 using UnityEngine;
 using static Enums;
 
+public abstract class ValueHolder : MonoBehaviour {
+    public abstract void UpdateDisplay(ConfigurationData data);
+    public abstract void SaveData(ConfigurationData data);
+}
+
+public abstract class FormCaller : MonoBehaviour {
+    public ConfigItemTypes type;
+    public abstract CreationForm SetFormDelegates(CreationForm form, ValueHolder label);
+  //  public abstract ValueHolder Setup(CreationForm form, ConfigurationData data); 
+   
+}
+
 public abstract class CreationForm : MonoBehaviour {
-    public abstract void Display();
+    public ErrorMessage errorMessage;
+
     public abstract void ClearFields();
     public abstract void Prepopulate(ConfigurationData data);
+
+    public delegate void CancelConfigurationDataDelegate();
+    public CancelConfigurationDataDelegate cancelationDelegate;
 
     public delegate void SubmitConfigurationDataDelegate(ConfigurationData val);
     public SubmitConfigurationDataDelegate submissionDelegate;
 
-    public delegate void ChangeListItemLabelDelegate(string val);
-    public ChangeListItemLabelDelegate renameDelegate;
+    public delegate void FormFieldChangeDelegate(ConfigurationData val);
+    public FormFieldChangeDelegate formFieldChangeDelegate;
 }
 
 public class CreationManager : MonoBehaviour {
@@ -24,7 +40,9 @@ public class CreationManager : MonoBehaviour {
     public ActionCreationForm actionCreationForm;
     public AttributeCreationForm attributeCreationForm;
     public CategoricalCreationForm categoricalCreationForm;
+    public CategoricalOptionCreationForm categoricalOptionCreationForm;
     public ScalarCreationForm scalarCreationForm;
+    public ConfigurationCreationForm configurationCreationForm;
 
     public List<CustomerConfigurationData> customerConfigs = new List<CustomerConfigurationData>();
 
@@ -38,7 +56,7 @@ public class CreationManager : MonoBehaviour {
         }
     }
 
-    private CreationForm GetForm(ConfigItemTypes type) {
+    private CreationForm GetForm(ConfigItemTypes type, ConfigurationData prepopulate = null) {
         CreationForm form = null;
         switch (type) {
             case ConfigItemTypes.Customer:
@@ -53,39 +71,48 @@ public class CreationManager : MonoBehaviour {
             case ConfigItemTypes.Attribute:
                 form = attributeCreationForm;
                 break;
+            case ConfigItemTypes.CategoricalOption:
+                form = categoricalOptionCreationForm;
+                break;
+            case ConfigItemTypes.Configuration:
+                form = configurationCreationForm;
+                break;
             default:
                 throw new System.Exception("ListItem type not yet implemented or added to ListItemTypes enum.");
         }
-        return form;
-    }
 
-    public void LoadConfigurationItem(ListItemLabel label) {
-        CreationForm form = GetForm(label.controller.type);
-        form.Prepopulate(label.data);
-        SetFormDelegates(form, label).Display();
-    }
-
-    public ListItemLabel CreateConfigurationItem(ItemListController itemListController, ConfigurationData data = null) {
-        ListItemLabel label = Instantiate(listItemPrefab, itemListController.scrollList.transform).GetComponent<ListItemLabel>();
-        label.controller = itemListController;
-        if (data != null) {
-            label.labelText.text = data.GetLabel();
-            label.data = data;
-        } else {
-            SetFormDelegates(GetForm(itemListController.type), label).Display();
+        if (prepopulate != null) {
+            form.Prepopulate(prepopulate);
+            
         }
-        return label;
+        form.gameObject.SetActive(true);
+        return form;
     }
 
-    private CreationForm SetFormDelegates(CreationForm form, ListItemLabel label) {
-        form.renameDelegate += label.UpdateText;
-        form.submissionDelegate += label.SaveData;
-        form.submissionDelegate += (x) => {
-            form.renameDelegate -= label.UpdateText;
-            form.ClearFields();
-            form.gameObject.SetActive(false);
-        };
-        return form;
+    private ConfigurationData GetPrepopulateData(ConfigItemTypes type) {
+        switch (type) {
+            case ConfigItemTypes.Customer:
+                AttributeConfigurationData arrears = new AttributeConfigurationData("Arrears", new ScalarValue(min: 50, max: 1000, variance: Enums.VarianceType.None));
+                return new CustomerConfigurationData(null, new List<AttributeConfigurationData>(new List<AttributeConfigurationData> { arrears }));
+            default:
+                return null;
+        }
+    }
+
+    public ValueHolder CreateConfigurationItem(FormCaller caller, ValueHolder valueHolder, ConfigurationData data = null) {
+        Debug.Log($"Type: {caller.type}");
+
+        CreationForm form;
+
+        if (data != null) {
+            valueHolder.UpdateDisplay(data);
+            valueHolder.SaveData(data);
+        } else {
+            data = GetPrepopulateData(caller.type);
+            form = GetForm(caller.type, data);
+            caller.SetFormDelegates(form, valueHolder);
+        }
+        return valueHolder;
     }
 
 }

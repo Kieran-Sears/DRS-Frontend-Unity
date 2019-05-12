@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -23,21 +25,30 @@ public class NetworkManager : MonoBehaviour {
         }
     }
 
-    IEnumerator SendConfigurationRequest(Configurations confs) {
-        var jsonString = JsonUtility.ToJson(confs) ?? "";
-        UnityWebRequest request = UnityWebRequest.Post(TRAIN_URL, jsonString);
+    public IEnumerator SendConfigurationRequest(Configurations confs) {
+        //var jsonString = JsonUtility.ToJson(confs, true);
+        string jsonString = JsonConvert.SerializeObject(confs, new StringEnumConverter());
+        Debug.Log(confs.ToString());
+        Debug.Log(jsonString);
+        UnityWebRequest request = UnityWebRequest.Put(TRAIN_URL, jsonString);
         request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Accept", "text/json");
 
+        yield return request.SendWebRequest();
+
+        Debug.Log("Response Code: " + request.responseCode);
         if (request.isNetworkError || request.isHttpError) {
             Debug.Log(request.error);
         } else {
-            Debug.Log("Form upload complete!");
+            string results = request.downloadHandler.text;
+            Debug.Log("Printing results...");
+            Debug.Log(request.downloadHandler.text);
+           // yield return request.downloadHandler.text;
         }
 
-        yield return request.Send();
+       
     }
-}
 
-public class Customer {
+ 
 
 }

@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class ListItemLabel : MonoBehaviour, IPointerDownHandler
+public class ListItemLabel : ValueHolder, IPointerDownHandler
 {
     public Text labelText;
     public ConfigurationData data;
@@ -10,18 +11,20 @@ public class ListItemLabel : MonoBehaviour, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData) {
         if (eventData.clickCount == 2) {
-            CreationManager.Instance.LoadConfigurationItem(this);
+            Debug.Log($"Loading configuration item:\n{data.ToString()}");
+            CreationManager.Instance.CreateConfigurationItem(controller, this, data);
             eventData.clickCount = 0;
         }
     }
 
-    public void SaveData(ConfigurationData data) {
+    public override void SaveData(ConfigurationData data) {
         this.data = data;
         Debug.Log($"Linked config to itemLabel");
     }
 
-    public void UpdateText(string text) {
-        labelText.text = text;
+    public override void UpdateDisplay(ConfigurationData text) {
+       
+        labelText.text = text.id;
     }
 
 }
