@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class AttributeCreationForm : CreationForm {
     public InputField nameInput;
@@ -15,9 +16,10 @@ public class AttributeCreationForm : CreationForm {
     public Button cancelButton;
 
     public void Start() {
+        submitButton.onClick.AddListener(() => Submit());
         cancelButton.onClick.AddListener(() => cancelationDelegate());
         nameInput.onEndEdit.AddListener((string newName) => formFieldChangeDelegate(GetConfigurationData()));
-        submitButton.onClick.AddListener(() => Submit());
+       
     }
 
     public override void ClearFields() {
@@ -52,6 +54,14 @@ Scalar: A value which has an exact measure and falls within a continuous spectru
     }
 
     private ConfigurationData GetConfigurationData() {
-        return new AttributeConfigurationData(nameInput.text, valueHolder.value);
+        AttributeConfigurationData attribute = CreationManager.attributes.Find(x => x.id == nameInput.text);
+
+        if (attribute != null) {
+            return attribute;
+        } else {
+            attribute = new AttributeConfigurationData(nameInput.text, valueHolder.value);
+            CreationManager.attributes.Add(attribute);
+            return attribute;
+        }
     }
 }

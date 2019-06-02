@@ -4,18 +4,18 @@ using UnityEngine.UI;
 
 public class AttributeValueController : FormCaller {
 
-    public AttributeHolder valueHolder;
+    public AttributeHolder holder;
     
     public Button button;
  
     public void Start() {
-        button.onClick.AddListener(() => CreationManager.Instance.CreateConfigurationItem(this, valueHolder));
+        button.onClick.AddListener(() => CreationManager.Instance.CreateConfigurationItem(this, holder));
     }
 
     public override CreationForm SetFormDelegates(CreationForm form, ValueHolder holder) {
-        valueHolder = holder as AttributeHolder;
+        this.holder = holder as AttributeHolder;
         form.submissionDelegate += ((x) => {
-            valueHolder.value = x as Value;
+            this.holder.value = x as Value;
             form.ClearFields();
             form.gameObject.SetActive(false);
         });

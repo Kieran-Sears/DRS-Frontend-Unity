@@ -42,7 +42,7 @@ public class ConfigurationCreationForm : CreationForm
     private void Submit() {
         string validation = Validate();
         if (validation == "OK") {
-            Configurations c = ConfigurationData() as Configurations;
+            Configurations c = GetConfigurationData() as Configurations;
            submissionDelegate(c);
         } else {
             errorMessage.DisplayError(validation);
@@ -68,11 +68,20 @@ public class ConfigurationCreationForm : CreationForm
         return ret;
     }
 
-    private ConfigurationData ConfigurationData() {
+    private ConfigurationData GetConfigurationData() {
         List<CustomerConfigurationData> customers = customerController.GetData().ConvertAll((x) => x as CustomerConfigurationData);
-        List<ActionConfigurationData> actions = customerController.GetData().ConvertAll((x) => x as ActionConfigurationData);
+        Debug.Log($"\nCustomers:\n");
+        customers.ForEach(x => Debug.Log(x.ToString() + ", "));
+        List<ActionConfigurationData> actions = actionController.GetData().ConvertAll((x) => x as ActionConfigurationData);
+        Debug.Log($"\nActions:\n{actions.ToString()}");
+        actions.ForEach(x => Debug.Log(x.ToString() + ",\n"));
+        Debug.Log("End of Actions");
         SimulationConfigurationData simulation = new SimulationConfigurationData(nameInput.text, int.Parse(startTime.text), int.Parse(endTime.text), int.Parse(numOfCustomers.text));
-        return new Configurations(simulation, customers, actions);
+        Debug.Log($"\nSimulation:\n {simulation.ToString()}");
+        Configurations configurations = new Configurations(simulation, customers, actions);
+        //CreationManager.CONFIGURATION = configurations;
+        Debug.Log($"\nConfigurations: {configurations.ToString()}");
+        return configurations;
     }
 
 

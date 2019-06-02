@@ -151,18 +151,15 @@ public class CategoricalOption : ConfigurationData {
 }
 
 public class ActionConfigurationData : ConfigurationData {
-    public ActionType actionType;
+
     public List<EffectConfigurationData> effectConfigurations;
-    public List<EffectConfigurationData> affectingConfigurations;
-    public List<EffectConfigurationData> metricConfigurations;
 
     public ActionConfigurationData(
-        string label, 
-        List<EffectConfigurationData> effectConfigurations,
-        List<EffectConfigurationData> affectingConfigurations,
-        List<EffectConfigurationData> metricConfigurations) {
+        string label,
+        List<EffectConfigurationData> effectConfigurations) {
         this.id = label;
         this.kind = "action";
+        this.effectConfigurations = effectConfigurations;
     }
 }
 

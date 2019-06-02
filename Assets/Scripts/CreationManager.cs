@@ -41,7 +41,8 @@ public class CreationManager : MonoBehaviour {
     public ConfigurationCreationForm configurationCreationForm;
     public EffectCreationForm effectCreationForm;
 
-    public List<CustomerConfigurationData> customerConfigs = new List<CustomerConfigurationData>();
+    public static Configurations CONFIGURATION;
+    public static List<AttributeConfigurationData> attributes = new List<AttributeConfigurationData>();
 
     private void Awake() {
         if (Instance == null) {
@@ -95,7 +96,14 @@ public class CreationManager : MonoBehaviour {
     private ConfigurationData GetPrepopulateData(ConfigItemTypes type) {
         switch (type) {
             case ConfigItemTypes.Customer:
-                AttributeConfigurationData arrears = new AttributeConfigurationData("Arrears", new ScalarValue(min: 50, max: 1000, variance: Enums.VarianceType.None));
+          
+                AttributeConfigurationData arrears = attributes.Find(x => x.id == "Arrears");
+
+                if (arrears == null) {
+                    arrears = new AttributeConfigurationData("Arrears", new ScalarValue(min: 50, max: 1000, variance: VarianceType.None));
+                    attributes.Add(arrears);
+                }
+
                 return new CustomerConfigurationData(null, 0, new List<AttributeConfigurationData>(new List<AttributeConfigurationData> { arrears }));
             default:
                 return null;
