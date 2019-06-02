@@ -19,7 +19,6 @@ public class ListItemLabel : ValueHolder, IPointerDownHandler
 
     public override void SaveData(ConfigurationData data) {
         this.data = data;
-        Debug.Log($"Linked config to itemLabel");
     }
 
     public override void UpdateDisplay(ConfigurationData text) {

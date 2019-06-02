@@ -8,7 +8,7 @@ public class CategoricalOptionCreationForm : CreationForm
     public Button cancelButton;
 
     void Start() {
-        nameInput.onEndEdit.AddListener((x) => formFieldChangeDelegate(GetCurrentValues()));
+        nameInput.onEndEdit.AddListener((x) => formFieldChangeDelegate(GetConfigurationData()));
         cancelButton.onClick.AddListener(() => cancelationDelegate());
         submitButton.onClick.AddListener(() => Submit());
     }
@@ -34,7 +34,7 @@ public class CategoricalOptionCreationForm : CreationForm
         throw new System.NotImplementedException();
     }
 
-    private ConfigurationData GetCurrentValues() {
+    private ConfigurationData GetConfigurationData() {
         return new CategoricalOption(nameInput.text);
     }
 

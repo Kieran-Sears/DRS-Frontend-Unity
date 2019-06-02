@@ -33,7 +33,8 @@ public class ScalarCreationForm : CreationForm
     private void Submit() {
         string validation = Validate();
         if (validation == "OK") {
-            submissionDelegate(new ScalarValue(double.Parse(minLabel.text), double.Parse(maxLabel.text), (VarianceType)varianceLabel.value, double.Parse(startLabel.text)));
+            double startValue = string.IsNullOrEmpty(startLabel.text) ? -1 : double.Parse(startLabel.text);
+            submissionDelegate(new ScalarValue(double.Parse(minLabel.text), double.Parse(maxLabel.text), (VarianceType)varianceLabel.value, startValue));
         } else {
             errorMessage.DisplayError(validation);
         };

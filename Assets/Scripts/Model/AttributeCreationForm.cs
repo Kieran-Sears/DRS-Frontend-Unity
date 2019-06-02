@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class AttributeCreationForm : CreationForm {
     public InputField nameInput;
 
-    private AttributeHolder valueHolder;
+    public AttributeHolder valueHolder;
 
     public AttributeValueController scalarCaller;
     public AttributeValueController CategoricalCaller;
@@ -15,12 +15,8 @@ public class AttributeCreationForm : CreationForm {
     public Button cancelButton;
 
     public void Start() {
-        valueHolder = GetComponent<AttributeHolder>();
-        scalarCaller.valueHolder = valueHolder;
-        CategoricalCaller.valueHolder = valueHolder;
-
         cancelButton.onClick.AddListener(() => cancelationDelegate());
-        nameInput.onEndEdit.AddListener((string newName) => formFieldChangeDelegate(GetCurrentValues()));
+        nameInput.onEndEdit.AddListener((string newName) => formFieldChangeDelegate(GetConfigurationData()));
         submitButton.onClick.AddListener(() => Submit());
     }
 
@@ -42,7 +38,7 @@ Scalar: A value which has an exact measure and falls within a continuous spectru
     private void Submit() {
         string validation = Validate();
         if (validation == "OK") {
-            submissionDelegate(GetCurrentValues());
+            submissionDelegate(GetConfigurationData());
         } else {
             errorMessage.DisplayError(validation);
         };
@@ -55,9 +51,7 @@ Scalar: A value which has an exact measure and falls within a continuous spectru
         return ret;
     }
 
-    private ConfigurationData GetCurrentValues() {
-        Debug.Log($"nameInput.text: {nameInput.text}");
-        Debug.Log($"valueHolder.value: {valueHolder.value}");
+    private ConfigurationData GetConfigurationData() {
         return new AttributeConfigurationData(nameInput.text, valueHolder.value);
     }
 }

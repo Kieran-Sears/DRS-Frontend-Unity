@@ -11,7 +11,8 @@ public class Enums : MonoBehaviour
         Categorical,
         Scalar,
         CategoricalOption,
-        Configuration
+        Configuration,
+        Effect
     }
 
     [System.Serializable]
@@ -19,5 +20,10 @@ public class Enums : MonoBehaviour
         None,
         Increasing,
         Decreasing
+    }
+
+    public enum ActionType {
+        Customer,
+        Agent
     }
 }

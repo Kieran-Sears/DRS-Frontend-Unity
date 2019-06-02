@@ -25,13 +25,13 @@ public class CategoricalCreationForm : CreationForm {
     private void Submit() {
         string validation = Validate();
         if (validation == "OK") {
-            submissionDelegate(GetCurrentValues());
+            submissionDelegate(GetConfigurationData());
         } else {
             errorMessage.DisplayError(validation);
         };
     }
 
-    private ConfigurationData GetCurrentValues() {
+    private ConfigurationData GetConfigurationData() {
         List<CategoricalOption> options = itemList.GetData().ConvertAll(x => x as CategoricalOption);
         return new CategoricalValue(new List<CategoricalOption>(options));
     }

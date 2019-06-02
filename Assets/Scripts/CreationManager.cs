@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using static Enums;
 
@@ -12,8 +10,6 @@ public abstract class ValueHolder : MonoBehaviour {
 public abstract class FormCaller : MonoBehaviour {
     public ConfigItemTypes type;
     public abstract CreationForm SetFormDelegates(CreationForm form, ValueHolder label);
-  //  public abstract ValueHolder Setup(CreationForm form, ConfigurationData data); 
-   
 }
 
 public abstract class CreationForm : MonoBehaviour {
@@ -43,6 +39,7 @@ public class CreationManager : MonoBehaviour {
     public CategoricalOptionCreationForm categoricalOptionCreationForm;
     public ScalarCreationForm scalarCreationForm;
     public ConfigurationCreationForm configurationCreationForm;
+    public EffectCreationForm effectCreationForm;
 
     public List<CustomerConfigurationData> customerConfigs = new List<CustomerConfigurationData>();
 
@@ -77,6 +74,12 @@ public class CreationManager : MonoBehaviour {
             case ConfigItemTypes.Configuration:
                 form = configurationCreationForm;
                 break;
+            case ConfigItemTypes.Action:
+                form = actionCreationForm;
+                break;
+            case ConfigItemTypes.Effect:
+                form = effectCreationForm;
+                break;
             default:
                 throw new System.Exception("ListItem type not yet implemented or added to ListItemTypes enum.");
         }
@@ -93,14 +96,15 @@ public class CreationManager : MonoBehaviour {
         switch (type) {
             case ConfigItemTypes.Customer:
                 AttributeConfigurationData arrears = new AttributeConfigurationData("Arrears", new ScalarValue(min: 50, max: 1000, variance: Enums.VarianceType.None));
-                return new CustomerConfigurationData(null, new List<AttributeConfigurationData>(new List<AttributeConfigurationData> { arrears }));
+                return new CustomerConfigurationData(null, 0, new List<AttributeConfigurationData>(new List<AttributeConfigurationData> { arrears }));
             default:
                 return null;
         }
     }
 
     public ValueHolder CreateConfigurationItem(FormCaller caller, ValueHolder valueHolder, ConfigurationData data = null) {
-        Debug.Log($"Type: {caller.type}");
+
+        Debug.Log($"CreateConfigurationItem Type: {caller.type} Caller: {caller.gameObject.name} Holder: {valueHolder.ToString()}");
 
         CreationForm form;
 

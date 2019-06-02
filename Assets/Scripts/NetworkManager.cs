@@ -32,7 +32,7 @@ public class NetworkManager : MonoBehaviour {
         Debug.Log(jsonString);
         UnityWebRequest request = UnityWebRequest.Put(TRAIN_URL, jsonString);
         request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Accept", "text/json");
+       // request.SetRequestHeader("Accept", "text/json");
 
         yield return request.SendWebRequest();
 

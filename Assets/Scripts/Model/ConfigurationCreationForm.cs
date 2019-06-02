@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,8 +10,8 @@ public class ConfigurationCreationForm : CreationForm
     public InputField endTime;
     public InputField numOfCustomers;
 
-    public ItemListController customerItemList;
-    public ItemListController actionItemList;
+    public ItemListController customerController;
+    public ItemListController actionController;
 
     public Button submitButton;
 
@@ -21,8 +20,8 @@ public class ConfigurationCreationForm : CreationForm
     }
 
     public override void ClearFields() {
-        customerItemList.ClearItems();
-        actionItemList.ClearItems();
+        customerController.ClearItems();
+        actionController.ClearItems();
         nameInput.text = "";
     }
 
@@ -32,36 +31,46 @@ public class ConfigurationCreationForm : CreationForm
         nameInput.text = configurationData.id;
         List<CustomerConfigurationData> customers = configurationData.customerConfigurations;
         foreach (CustomerConfigurationData customer in customers) {
-            customerItemList.AddItem();
+            customerController.AddItem();
         }
         List<ActionConfigurationData> actions = configurationData.actionConfigurations;
         foreach (ActionConfigurationData action in actions) {
-            actionItemList.AddItem(action);
+            actionController.AddItem(action);
         } 
     }
 
     private void Submit() {
         string validation = Validate();
         if (validation == "OK") {
-            Configurations c = GetCurrentValues() as Configurations;
+            Configurations c = ConfigurationData() as Configurations;
            submissionDelegate(c);
         } else {
             errorMessage.DisplayError(validation);
         };
     }
 
+    public void ActionTabFocus(RectTransform actionWorkspace) {
+        if (customerController.listItems.Count > 0) {
+            actionWorkspace.SetAsLastSibling();
+        } else {
+            errorMessage.DisplayError("Please Ensure at least one customer has been created first");
+        }
+    }
+
     private string Validate() {
         string ret = "OK";
+        ret = customerController.listItems.Count < 1 ? "Please add at least one customer" : ret;
+        ret = actionController.listItems.Count < 2 ? "Please add at least two actions" : ret;
         ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign a Configuration Name" : ret;
-        ret = string.IsNullOrEmpty(startTime.text) ? "Please assign a Configuration Name" : ret;
-        ret = string.IsNullOrEmpty(endTime.text) ? "Please assign a Configuration Name" : ret;
-        ret = string.IsNullOrEmpty(numOfCustomers.text) ? "Please assign a Configuration Name" : ret;
+        ret = string.IsNullOrEmpty(startTime.text) ? "Please enter a start time" : ret;
+        ret = string.IsNullOrEmpty(endTime.text) ? "Please enter an end time" : ret;
+        ret = string.IsNullOrEmpty(numOfCustomers.text) ? "Please enter the number of customers to be generated" : ret;
         return ret;
     }
 
-    private ConfigurationData GetCurrentValues() {
-        List<CustomerConfigurationData> customers = customerItemList.GetData().ConvertAll((x) => x as CustomerConfigurationData);
-        List<ActionConfigurationData> actions = customerItemList.GetData().ConvertAll((x) => x as ActionConfigurationData);
+    private ConfigurationData ConfigurationData() {
+        List<CustomerConfigurationData> customers = customerController.GetData().ConvertAll((x) => x as CustomerConfigurationData);
+        List<ActionConfigurationData> actions = customerController.GetData().ConvertAll((x) => x as ActionConfigurationData);
         SimulationConfigurationData simulation = new SimulationConfigurationData(nameInput.text, int.Parse(startTime.text), int.Parse(endTime.text), int.Parse(numOfCustomers.text));
         return new Configurations(simulation, customers, actions);
     }

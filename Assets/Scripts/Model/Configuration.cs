@@ -4,6 +4,7 @@ using static Enums;
 
 public abstract class ConfigurationData {
     public string id;
+    public string kind;
 }
 
 public abstract class Value : ConfigurationData { } 
@@ -16,6 +17,7 @@ public class Configurations : ConfigurationData {
 
     public Configurations(SimulationConfigurationData simulationConfiguration, List<CustomerConfigurationData> customerConfigurations, List<ActionConfigurationData> actionConfigurations) {
         this.id = Guid.NewGuid().ToString();
+        this.kind = "configuration";
         this.simulationConfiguration = simulationConfiguration;
         this.customerConfigurations = customerConfigurations;
         this.actionConfigurations = actionConfigurations;
@@ -48,6 +50,7 @@ public class SimulationConfigurationData : ConfigurationData {
 
     public SimulationConfigurationData(string label, int startTime, int endTime, int numberOfCustomers) {
         this.id = label;
+        this.kind = "simulation";
         this.startTime = startTime;
         this.endTime = endTime;
         this.numberOfCustomers = numberOfCustomers;
@@ -60,11 +63,14 @@ public class SimulationConfigurationData : ConfigurationData {
 }
 
 public class CustomerConfigurationData : ConfigurationData {
-
+    
+    public int proportion;
     public List<AttributeConfigurationData> attributeConfigurations;
 
-    public CustomerConfigurationData(string label, List<AttributeConfigurationData> attributeConfigurations) {
+    public CustomerConfigurationData(string label, int proportion, List<AttributeConfigurationData> attributeConfigurations) {
         this.id = label;
+        this.kind = "customer";
+        this.proportion = proportion;
         this.attributeConfigurations = attributeConfigurations;
     }
     public override string ToString() {
@@ -76,18 +82,15 @@ public class CustomerConfigurationData : ConfigurationData {
     }
 }
 
-public class ActionConfigurationData : ConfigurationData {
-    public ActionConfigurationData(string label) {
-        this.id = label;
-    }
-}
+
 
 public class AttributeConfigurationData : ConfigurationData {
-
+  
     public Value value;
 
     public AttributeConfigurationData(string label, Value value) {
         this.id = label;
+        this.kind = "attribute";
         this.value = value;
     }
 
@@ -97,7 +100,6 @@ public class AttributeConfigurationData : ConfigurationData {
 }
 
 public class ScalarValue : Value {
-    public string kind;
     public double start;
     public double min;
     public double max;
@@ -119,7 +121,6 @@ public class ScalarValue : Value {
 }
 
 public class CategoricalValue : Value {
-    public string kind;
     public List<CategoricalOption> options;
 
     public CategoricalValue(List<CategoricalOption> options) {
@@ -141,9 +142,57 @@ public class CategoricalOption : ConfigurationData {
 
     public CategoricalOption(string label) {
         this.id = label;
+        this.kind = "categoricalOption";
     }
 
     public override string ToString() {
         return id;
     }
+}
+
+public class ActionConfigurationData : ConfigurationData {
+    public ActionType actionType;
+    public List<EffectConfigurationData> effectConfigurations;
+    public List<EffectConfigurationData> affectingConfigurations;
+    public List<EffectConfigurationData> metricConfigurations;
+
+    public ActionConfigurationData(
+        string label, 
+        List<EffectConfigurationData> effectConfigurations,
+        List<EffectConfigurationData> affectingConfigurations,
+        List<EffectConfigurationData> metricConfigurations) {
+        this.id = label;
+        this.kind = "action";
+    }
+}
+
+public class EffectConfigurationData : ConfigurationData {
+
+    public ActionType type;
+    public string target;
+
+    public EffectConfigurationData(string label, ActionType type, string target) {
+        this.id = label;
+        this.kind = "effects";
+        this.type = type;
+        this.target = target;
+    }
+    public override string ToString() {
+        return $"EffectConfigurationData:\n   label:{id}\n   type:{type}\n  target:{target}";
+    }
+}
+
+public class ArrearsEffectConfigurationData: ConfigurationData {
+
+    public Effect effect;
+
+}
+
+
+public abstract class Effect {
+
+}
+
+public class ArrearsEffect : Effect {
+
 }

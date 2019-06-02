@@ -14,10 +14,11 @@ public class AttributeValueController : FormCaller {
 
     public override CreationForm SetFormDelegates(CreationForm form, ValueHolder holder) {
         valueHolder = holder as AttributeHolder;
-        form.submissionDelegate += ((x) => {form.gameObject.SetActive(false);});
-        Debug.Log($"attributeValueHolder: {valueHolder}");
-        Debug.Log($"attributeValueHolders value: {valueHolder.value}");
-        form.submissionDelegate += ((v) => valueHolder.value = v as Value);
+        form.submissionDelegate += ((x) => {
+            valueHolder.value = x as Value;
+            form.ClearFields();
+            form.gameObject.SetActive(false);
+        });
         return form;
     }
 
