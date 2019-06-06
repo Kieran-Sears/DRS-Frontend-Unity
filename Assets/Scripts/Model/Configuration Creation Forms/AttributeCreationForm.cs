@@ -1,28 +1,43 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
 
 public class AttributeCreationForm : CreationForm {
     public InputField nameInput;
 
-    public AttributeHolder valueHolder;
-
     public AttributeValueController scalarCaller;
-    public AttributeValueController CategoricalCaller;
+    public AttributeValueController categoricalCaller;
 
     public Text summaryTextbox;
 
-    public Button submitButton;
-    public Button cancelButton;
-
     public void Start() {
-        submitButton.onClick.AddListener(() => Submit());
-        cancelButton.onClick.AddListener(() => cancelationDelegate());
-        nameInput.onEndEdit.AddListener((string newName) => formFieldChangeDelegate(GetConfigurationData()));
-       
+        nameInput.onEndEdit.AddListener((string newName) => delegates.nameChangeDelegate(newName));
+    }
+
+    public override void Prepopulate(ConfigurationData data) {
+        AttributeConfigurationData attribute = data as AttributeConfigurationData;
+        nameInput.text = attribute.id;
+        switch (attribute.value.kind) {
+            case "scalar":
+                scalarCaller.AddItem(attribute.value);
+                break;
+            case "categorical":
+                categoricalCaller.AddItem(attribute.value);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public override string Validate() {
+        string ret = "OK";
+        ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign a Attribute Name" : ret;
+        ret = CreationManager.ATTRIBUTES.Find(x => x.id == Utilities.UpperFirst(nameInput.text)) != null ? "Please assign a unique Attribute Name" : ret;
+        return ret;
     }
 
     public override void ClearFields() {
+        scalarCaller.value = null;
+        categoricalCaller.value = null;
         nameInput.text = "";
         summaryTextbox.text = @"Please select whether this attribute is a scalar value or a categorical one below...\n\ni.e.\n\n
 Categorical: A value which can be classified and put into a category of it's own amongst a set. e.g. Home-ownership: Mortgage, Private Rent, Council Housing, etc.\n
@@ -30,38 +45,15 @@ Scalar: A value which has an exact measure and falls within a continuous spectru
 (Note: An option to vary the value over time is also presented for scalar values)";
     }
 
-    public override void Prepopulate(ConfigurationData data) {
-        AttributeConfigurationData attribute = data as AttributeConfigurationData;
-        nameInput.text = attribute.id;
-        Debug.Log($"Attempting to prepopulate data:\n{data.ToString()}");
-        valueHolder.value = attribute.value;
-    }
-
-    private void Submit() {
-        string validation = Validate();
-        if (validation == "OK") {
-            submissionDelegate(GetConfigurationData());
-        } else {
-            errorMessage.DisplayError(validation);
-        };
-    }
-
-    private string Validate() {
-        string ret = "OK";
-        ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign a Attribute Name" : ret;
-
-        return ret;
-    }
-
-    private ConfigurationData GetConfigurationData() {
-        AttributeConfigurationData attribute = CreationManager.attributes.Find(x => x.id == nameInput.text);
-
-        if (attribute != null) {
-            return attribute;
-        } else {
-            attribute = new AttributeConfigurationData(nameInput.text, valueHolder.value);
-            CreationManager.attributes.Add(attribute);
-            return attribute;
-        }
+    public override ConfigurationData GetConfigurationData() {
+        //AttributeConfigurationData attribute = CreationManager.ATTRIBUTES.Find(x => x.id == UpperFirst(nameInput.text));
+        //if (attribute == null) {
+        Value value = null;
+        value = scalarCaller.value == null ? value : scalarCaller.value;
+        value = categoricalCaller.value == null ? value : categoricalCaller.value;
+        AttributeConfigurationData attribute = new AttributeConfigurationData(Utilities.UpperFirst(nameInput.text), value);
+        CreationManager.ATTRIBUTES.Add(attribute);
+        //}
+        return attribute;
     }
 }

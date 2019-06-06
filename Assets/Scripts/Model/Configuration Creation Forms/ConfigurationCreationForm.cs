@@ -10,57 +10,24 @@ public class ConfigurationCreationForm : CreationForm
     public InputField endTime;
     public InputField numOfCustomers;
 
-    public ItemListController customerController;
-    public ItemListController actionController;
-
-    public Button submitButton;
-
-    public void Start() {
-        submitButton.onClick.AddListener(() => Submit());
-    }
-
-    public override void ClearFields() {
-        customerController.ClearItems();
-        actionController.ClearItems();
-        nameInput.text = "";
-    }
+    public ItemListController customersController;
+    public ItemListController actionsController;
 
     public override void Prepopulate(ConfigurationData data) {
-        Debug.Log($"Prepopulating Configuration data:\n{data.ToString()}");
         Configurations configurationData = data as Configurations;
-        nameInput.text = configurationData.id;
-        List<CustomerConfigurationData> customers = configurationData.customerConfigurations;
-        foreach (CustomerConfigurationData customer in customers) {
-            customerController.AddItem();
+        nameInput.text = configurationData.id;  
+        foreach (CustomerConfigurationData customer in configurationData.customerConfigurations) {
+            customersController.AddItem(customer);
         }
-        List<ActionConfigurationData> actions = configurationData.actionConfigurations;
-        foreach (ActionConfigurationData action in actions) {
-            actionController.AddItem(action);
+        foreach (ActionConfigurationData action in configurationData.actionConfigurations) {
+            actionsController.AddItem(action);
         } 
     }
 
-    private void Submit() {
-        string validation = Validate();
-        if (validation == "OK") {
-            Configurations c = GetConfigurationData() as Configurations;
-           submissionDelegate(c);
-        } else {
-            errorMessage.DisplayError(validation);
-        };
-    }
-
-    public void ActionTabFocus(RectTransform actionWorkspace) {
-        if (customerController.listItems.Count > 0) {
-            actionWorkspace.SetAsLastSibling();
-        } else {
-            errorMessage.DisplayError("Please Ensure at least one customer has been created first");
-        }
-    }
-
-    private string Validate() {
+    public override string Validate() {
         string ret = "OK";
-        ret = customerController.listItems.Count < 1 ? "Please add at least one customer" : ret;
-        ret = actionController.listItems.Count < 2 ? "Please add at least two actions" : ret;
+        ret = customersController.listItems.Count < 1 ? "Please add at least one customer" : ret;
+        ret = actionsController.listItems.Count < 2 ? "Please add at least two actions" : ret;
         ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign a Configuration Name" : ret;
         ret = string.IsNullOrEmpty(startTime.text) ? "Please enter a start time" : ret;
         ret = string.IsNullOrEmpty(endTime.text) ? "Please enter an end time" : ret;
@@ -68,21 +35,31 @@ public class ConfigurationCreationForm : CreationForm
         return ret;
     }
 
-    private ConfigurationData GetConfigurationData() {
-        List<CustomerConfigurationData> customers = customerController.GetData().ConvertAll((x) => x as CustomerConfigurationData);
-        Debug.Log($"\nCustomers:\n");
-        customers.ForEach(x => Debug.Log(x.ToString() + ", "));
-        List<ActionConfigurationData> actions = actionController.GetData().ConvertAll((x) => x as ActionConfigurationData);
-        Debug.Log($"\nActions:\n{actions.ToString()}");
-        actions.ForEach(x => Debug.Log(x.ToString() + ",\n"));
-        Debug.Log("End of Actions");
-        SimulationConfigurationData simulation = new SimulationConfigurationData(nameInput.text, int.Parse(startTime.text), int.Parse(endTime.text), int.Parse(numOfCustomers.text));
-        Debug.Log($"\nSimulation:\n {simulation.ToString()}");
-        Configurations configurations = new Configurations(simulation, customers, actions);
-        //CreationManager.CONFIGURATION = configurations;
-        Debug.Log($"\nConfigurations: {configurations.ToString()}");
-        return configurations;
+    public override void ClearFields() {
+        customersController.ClearItems();
+        actionsController.ClearItems();
+        nameInput.text = "";
     }
 
+    public override ConfigurationData GetConfigurationData() {
+        CreationManager.SIMULATION = new SimulationConfigurationData(Utilities.UpperFirst(nameInput.text), int.Parse(startTime.text), int.Parse(endTime.text), int.Parse(numOfCustomers.text));
 
+        CreationManager.CONFIGURATION = new Configurations(
+            CreationManager.SIMULATION, 
+            CreationManager.CUSTOMERS, 
+            CreationManager.ACTIONS,
+            CreationManager.EFFECTS,
+            CreationManager.ATTRIBUTES,
+            CreationManager.OPTIONS);
+
+        return CreationManager.CONFIGURATION;
+    }
+
+    public void ActionTabFocus(RectTransform actionWorkspace) {
+        if (customersController.listItems.Count > 0) {
+            actionWorkspace.SetAsLastSibling();
+        } else {
+            errorMessage.DisplayError("Please Ensure at least one customer has been created first");
+        }
+    }
 }

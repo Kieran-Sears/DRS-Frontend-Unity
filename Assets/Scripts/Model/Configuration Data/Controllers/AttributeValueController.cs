@@ -4,25 +4,25 @@ using UnityEngine.UI;
 
 public class AttributeValueController : FormCaller {
 
-    public AttributeHolder holder;
-    
-    public Button button;
- 
-    public void Start() {
-        button.onClick.AddListener(() => CreationManager.Instance.CreateConfigurationItem(this, holder));
+    public Value value;
+    public Text display;
+
+    public override void AddItem() {
+        CreationManager.Instance.CreateConfigurationItem(this);
     }
 
-    public override CreationForm SetFormDelegates(CreationForm form, ValueHolder holder) {
-        this.holder = holder as AttributeHolder;
-        form.submissionDelegate += ((x) => {
-            this.holder.value = x as Value;
-            form.ClearFields();
-            form.gameObject.SetActive(false);
-        });
-        return form;
+    public void AddItem(ConfigurationData data) {
+        throw new System.NotImplementedException();
     }
 
-   
+    public override DelegateHolder SetFormDelegates(DelegateHolder delegates) {
+        delegates.submissionDelegate += SetValue;
+        return delegates;
+    }
 
-    
+    private void SetValue(ConfigurationData val) {
+        Value value = val as Value;
+        this.value = value;
+        display.text = value.ToString();
+    }
 }

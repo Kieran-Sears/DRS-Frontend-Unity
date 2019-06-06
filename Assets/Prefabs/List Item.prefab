@@ -130,4 +130,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66f97d1c0d0b2c14aa5e2570b1558161, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  labelText: {fileID: 1222445664277270889}
+  label: {fileID: 1222445664277270889}
+  controller: {fileID: 0}

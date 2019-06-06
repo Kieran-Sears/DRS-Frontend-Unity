@@ -26,4 +26,9 @@ public class Enums : MonoBehaviour
         Customer,
         Agent
     }
+
+    public enum EffectType {
+        Effect,
+        Affect
+    }
 }

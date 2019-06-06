@@ -1,50 +1,56 @@
-﻿using UnityEngine.UI;
+﻿using System.Collections.Generic;
+using UnityEngine.UI;
+using static Enums;
 
 public class ActionCreationForm : CreationForm {
-    public InputField nameInput;
-
-    public ItemListController effects;
-
-    public Button submitButton;
-    public Button cancelButton;
+    public InputField label;
+    public Dropdown type;
+    public ItemListController effectsController;
 
     public void Start() {
-        submitButton.onClick.AddListener(() => Submit());
-        cancelButton.onClick.AddListener(() => cancelationDelegate());
-        nameInput.onEndEdit.AddListener((string newName) => formFieldChangeDelegate(GetConfigurationData()));
-    }
-
-    private ConfigurationData GetConfigurationData() {
-        return new ActionConfigurationData(
-             label: nameInput.text,
-             effectConfigurations: effects.GetData().ConvertAll((a) => a as EffectConfigurationData)
-             );
-    }
-
-    private void Submit() {
-        string validation = Validate();
-        if (validation == "OK") {
-            submissionDelegate(GetConfigurationData());
-        } else {
-            errorMessage.DisplayError(validation);
-        };
-    }
-
-    private string Validate() {
-        string ret = "OK";
-        ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign an Action Name" : "OK";
-        return ret;
-    }
-
-    public override void ClearFields() {
-        nameInput.text = "";
-        effects.ClearItems();
+        PopulateDropdowns();
+        label.onEndEdit.AddListener((string newName) => delegates.nameChangeDelegate(newName));
     }
 
     public override void Prepopulate(ConfigurationData data) {
         ActionConfigurationData action = data as ActionConfigurationData;
-        nameInput.text = data.id;
-        action.effectConfigurations.ForEach((attr) => effects.AddItem(attr));
+        label.text = data.id;
+        action.effectConfigurations.ForEach((attr) => {
+            EffectConfigurationData effect = CreationManager.EFFECTS.Find(x => x.id == data.id);
+            effectsController.AddItem(effect);
+        });
+    }
+ 
+    public override string Validate() {
+        string ret = "OK";
+        ret = string.IsNullOrEmpty(label.text) ? "Please assign an Action Name" : "OK";
+        ret = CreationManager.ACTIONS.Find(x => x.id == Utilities.UpperFirst(label.text)) != null ? "Please assign a unique Action Name" : ret;
+        return ret;
+    }
+
+    public override void ClearFields() {
+        label.text = "";
+        type.value = 0;
+        effectsController.ClearItems();
+    }
+
+    public override ConfigurationData GetConfigurationData() {
+        ActionConfigurationData action = CreationManager.ACTIONS.Find(x => x.id == Utilities.UpperFirst(label.text));
+        if (action == null) {
+            action = new ActionConfigurationData(
+                label: Utilities.UpperFirst(label.text),
+                type: (ActionType) type.value,
+                effectConfigurations: effectsController.GetLabelNames()
+                );
+            CreationManager.ACTIONS.Add(action);
+        }
+        return action;
+    }
+
+    private void PopulateDropdowns() {
+        string[] actionTypeNames = System.Enum.GetNames(typeof(ActionType));
+        type.ClearOptions();
+        type.AddOptions(new List<string>(actionTypeNames));
     }
 
 }

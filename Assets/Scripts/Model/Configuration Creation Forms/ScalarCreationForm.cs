@@ -3,47 +3,33 @@ using static Enums;
 
 public class ScalarCreationForm : CreationForm
 {
-    public InputField startLabel;
-    public InputField minLabel;
-    public InputField maxLabel;
-    public Dropdown varianceLabel;
-    public Button submitButton;
-    public Button cancelButton;
+    public InputField min;
+    public InputField max;
+    public Dropdown variance;
 
-    public void Start() {
-        cancelButton.onClick.AddListener(() => cancelationDelegate());
-        submitButton.onClick.AddListener(() => Submit());
-    }
-
-    public override void ClearFields() {
-        startLabel.text = "";
-        minLabel.text = "";
-        maxLabel.text = "";
-        varianceLabel.value = 0;
-    }
 
     public override void Prepopulate(ConfigurationData data) {
         ScalarValue scalar = data as ScalarValue;
-        startLabel.text = scalar.start.ToString();
-        minLabel.text = scalar.min.ToString();
-        maxLabel.text = scalar.max.ToString();
-        varianceLabel.value = (int) scalar.variance;
+        min.text = scalar.min.ToString();
+        max.text = scalar.max.ToString();
+        variance.value = (int) scalar.variance;
     }
 
-    private void Submit() {
-        string validation = Validate();
-        if (validation == "OK") {
-            double startValue = string.IsNullOrEmpty(startLabel.text) ? -1 : double.Parse(startLabel.text);
-            submissionDelegate(new ScalarValue(double.Parse(minLabel.text), double.Parse(maxLabel.text), (VarianceType)varianceLabel.value, startValue));
-        } else {
-            errorMessage.DisplayError(validation);
-        };
-    }
 
-    private string Validate() {
+    public override string Validate() {
         string ret = "OK";
-        ret = string.IsNullOrEmpty(minLabel.text) ? "Please assign a Customer Name" : ret;
-        ret = string.IsNullOrEmpty(maxLabel.text) ? "Please assign a Customer Name" : ret;
+        ret = Utilities.NumberValidation(min.text) ? "Please assign a minimum value" : ret;
+        ret = Utilities.NumberValidation(max.text) ? "Please assign a maximum value" : ret;
         return ret;
+    }
+
+    public override void ClearFields() {
+        min.text = "";
+        max.text = "";
+        variance.value = 0;
+    }
+
+    public override ConfigurationData GetConfigurationData() {
+        return new ScalarValue(double.Parse(min.text), double.Parse(max.text), (VarianceType)variance.value);
     }
 }

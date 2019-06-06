@@ -1,65 +1,62 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class CustomerCreationForm : CreationForm
-{
+public class CustomerCreationForm : CreationForm {
     public InputField nameInput;
     public InputField proportionInput;
 
-    public ItemListController attributeItemList;
+    public AttributeValueController arrears;
+    public AttributeValueController satisfaction;
 
-    public Button submitButton;
-    public Button cancelButton;
+    public ItemListController attributesController;
 
     public void Start() {
-        submitButton.onClick.AddListener(() => Submit());
-        cancelButton.onClick.AddListener(() => cancelationDelegate());
-        nameInput.onEndEdit.AddListener((string newName) => formFieldChangeDelegate(GetConfigurationData()));
+        nameInput.onEndEdit.AddListener((string newName) => delegates.nameChangeDelegate(newName));
     }
 
-    private ConfigurationData GetConfigurationData() {
-        return new CustomerConfigurationData(
-             label: nameInput.text,
-             proportion: int.Parse(proportionInput.text),
-             attributeConfigurations: attributeItemList.GetData().ConvertAll((a) => a as AttributeConfigurationData));
+   public override void Prepopulate(ConfigurationData data) {
+        CustomerConfigurationData customer = data as CustomerConfigurationData;
+        nameInput.text = customer.id;
+        proportionInput.text = customer.proportion.ToString();
+        arrears.value = customer.arrears;
+        satisfaction.value = customer.satisfaction;
+        arrears.display.text = customer.arrears.ToString();
+        satisfaction.display.text = customer.satisfaction.ToString();
+        customer.attributeConfigurations.ForEach((attr) => {
+            AttributeConfigurationData a = CreationManager.ATTRIBUTES.Find(x => x.id == attr);
+            attributesController.AddItem(a); attributesController.UpdateItemLabel(a.id);
+        });
     }
 
-    private void Submit() {
-       string validation = Validate();
-       if (validation == "OK") {
-           submissionDelegate(GetConfigurationData());
-       } else {
-           errorMessage.DisplayError(validation);
-       };
-    }
-
-    private string Validate() {
-       string ret = "OK";
-       ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign a Customer Name" : "OK";
-       ret = ProportionValidation(proportionInput.text) ? "Please assign a proportion number between 1 and 100" : "OK";
-       return ret;
+    public override string Validate() {
+        string ret = "OK";
+        ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign a Customer Name" : "OK";
+        ret = CreationManager.CUSTOMERS.Find(x => x.id == Utilities.UpperFirst(nameInput.text)) != null ? "Please assign a unique Customer Name" : ret;
+        ret = Utilities.NumberValidation(proportionInput.text, 1, 100) ? "Please assign a proportion number between 1 and 100" : "OK";
+        ret = arrears.value == null ? "Please assign a value to arrears" : "OK";
+        ret = satisfaction.value == null ? "Please assign a value to satisfaction" : "OK"; 
+        return ret;
     }
 
     public override void ClearFields() {
         nameInput.text = "";
         proportionInput.text = "";
-        attributeItemList.ClearItems();
+        attributesController.ClearItems();
     }
 
-    public override void Prepopulate(ConfigurationData data) {
-        CustomerConfigurationData customer = data as CustomerConfigurationData;
-        nameInput.text = customer.id;
-        proportionInput.text = customer.proportion.ToString();
-        customer.attributeConfigurations.ForEach((attr) => attributeItemList.AddItem(attr));
-    }
+    public override ConfigurationData GetConfigurationData() {
+        CustomerConfigurationData customer = CreationManager.CUSTOMERS.Find(x => x.id == Utilities.UpperFirst(nameInput.text));
 
-    private bool ProportionValidation(string text) {
-        bool ret = true;
-        int proportion = int.Parse(text);
-        ret = string.IsNullOrEmpty(text) ? false : true;
-        ret = proportion < 1 ? true : false;
-        ret = proportion > 100 ? true : false;
-        return ret;
+        if (customer == null) {
+            customer = new CustomerConfigurationData(
+                label: Utilities.UpperFirst(nameInput.text),
+                proportion: int.Parse(proportionInput.text),
+                arrears: arrears.value as ScalarValue,
+                satisfaction: satisfaction.value as ScalarValue,
+                attributeConfigurations: attributesController.GetLabelNames());
+            CreationManager.CUSTOMERS.Add(customer);
+        }
+        return customer;
     }
 
 }

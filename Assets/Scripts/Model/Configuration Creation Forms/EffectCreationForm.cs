@@ -11,39 +11,9 @@ public class EffectCreationForm : CreationForm {
     public Dropdown type;
     public Dropdown target;
 
-    public Button cancelButton;
-    public Button submitButton;
-
     public void Start() {
         PopulateDropdowns();
-        submitButton.onClick.AddListener(() => Submit());
-        cancelButton.onClick.AddListener(() => cancelationDelegate());
-        nameInput.onEndEdit.AddListener((string newName) => formFieldChangeDelegate(GetConfigurationData()));
-    }
-
-    private ConfigurationData GetConfigurationData() {
-        return new EffectConfigurationData(nameInput.text, (ActionType)type.value, target.options[target.value].text);
-    }
-
-    private void Submit() {
-        string validation = Validate();
-        if (validation == "OK") {
-            EffectConfigurationData data = GetConfigurationData() as EffectConfigurationData;
-            submissionDelegate(data);
-        } else {
-            errorMessage.DisplayError(validation);
-        };
-    }
-
-    private string Validate() {
-        string ret = "OK";
-        ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign an Effect Name" : ret;
-        return ret;
-    }
-
-    public override void ClearFields() {
-        type.value = 0;
-        target.value = 0;
+        nameInput.onEndEdit.AddListener((string newName) => delegates.nameChangeDelegate(newName));
     }
 
     public override void Prepopulate(ConfigurationData data) {
@@ -52,22 +22,39 @@ public class EffectCreationForm : CreationForm {
       target.value = target.options.FindIndex((i) => { return i.text.Equals(effect.type); });
     }
 
-    private void PopulateDropdowns() {
-        string[] actionTypeNames = Enum.GetNames(typeof(ActionType));
-        type.AddOptions(new List<string>(actionTypeNames));
-
-        List<string> attributes = new List<string>();
-        
-        foreach (AttributeConfigurationData item in CreationManager.attributes) {
-                attributes.Add(item.id);
-        }
-        
-        target.ClearOptions();
-        target.AddOptions(attributes);
+    public override string Validate() {
+        string ret = "OK";
+        ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign an Effect Name" : ret;
+        // ret = CreationManager.EFFECTS.Find(x => x.id == UpperFirst(nameInput.text)) != null ? "Please assign a unique Effect Name" : ret;
+        return ret;
     }
 
-    public override string ToString() {
-        return base.ToString();
+    public override void ClearFields() {
+        nameInput.text = "";
+        type.value = 0;
+        target.value = 0;
+    }
+
+    public override ConfigurationData GetConfigurationData() {
+        EffectConfigurationData effect = CreationManager.EFFECTS.Find(x => x.id == Utilities.UpperFirst(nameInput.text));
+        if (effect == null) {
+            effect = new EffectConfigurationData(Utilities.UpperFirst(nameInput.text), (EffectType)type.value, Utilities.UpperFirst(target.options[target.value].text));
+            CreationManager.EFFECTS.Add(effect);
+        }
+        return effect;
+    }
+
+    private void PopulateDropdowns() {
+        string[] effectTypeNames = Enum.GetNames(typeof(EffectType));
+        type.ClearOptions();
+        type.AddOptions(new List<string>(effectTypeNames));
+
+        List<string> attributes = new List<string>();
+        foreach (AttributeConfigurationData item in CreationManager.ATTRIBUTES) {
+                attributes.Add(item.id);
+        }
+        target.ClearOptions();
+        target.AddOptions(attributes.Union<string>(new List<string> { "Arrears", "Satisfaction" }).ToList());
     }
 
 }

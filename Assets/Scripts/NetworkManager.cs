@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -25,14 +26,12 @@ public class NetworkManager : MonoBehaviour {
         }
     }
 
-    public IEnumerator SendConfigurationRequest(Configurations confs) {
-        //var jsonString = JsonUtility.ToJson(confs, true);
+    public IEnumerator SendConfigurationRequest(Configurations confs, Action<List<Customer>> onComplete) {
         string jsonString = JsonConvert.SerializeObject(confs, new StringEnumConverter());
         Debug.Log(confs.ToString());
         Debug.Log(jsonString);
         UnityWebRequest request = UnityWebRequest.Put(TRAIN_URL, jsonString);
         request.SetRequestHeader("Content-Type", "application/json");
-       // request.SetRequestHeader("Accept", "text/json");
 
         yield return request.SendWebRequest();
 
@@ -42,8 +41,8 @@ public class NetworkManager : MonoBehaviour {
         } else {
             string results = request.downloadHandler.text;
             Debug.Log("Printing results...");
-            Debug.Log(request.downloadHandler.text);
-           // yield return request.downloadHandler.text;
+            Debug.Log(results);
+            onComplete(JsonConvert.DeserializeObject<List<Customer>>(results));
         }
 
        

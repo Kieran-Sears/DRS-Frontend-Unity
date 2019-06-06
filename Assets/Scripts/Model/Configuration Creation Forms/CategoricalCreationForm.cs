@@ -4,40 +4,25 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class CategoricalCreationForm : CreationForm {
-    public ItemListController itemList;
+    public ItemListController optionsController;
 
-    public Button submitButton;
-    public Button cancelButton;
-
-    public void Start() {
-        cancelButton.onClick.AddListener(() => cancelationDelegate());
-        submitButton.onClick.AddListener(() => Submit());
+    public override void Prepopulate(ConfigurationData option) {
+        optionsController.AddItem(option);
     }
 
-    public override void Prepopulate(ConfigurationData data) {
-        itemList.AddItem(data);
+    public override string Validate() {
+        return optionsController.listItems.Count < 1 ? "Please assign add at least two options to the list" : "OK";
     }
 
     public override void ClearFields() {
-        itemList.ClearItems();
+        optionsController.ClearItems();
     }
 
-    private void Submit() {
-        string validation = Validate();
-        if (validation == "OK") {
-            submissionDelegate(GetConfigurationData());
-        } else {
-            errorMessage.DisplayError(validation);
-        };
+    public override ConfigurationData GetConfigurationData() {
+        List<string> names = optionsController.GetLabelNames();
+        return new CategoricalValue(optionsController.GetLabelNames());
     }
 
-    private ConfigurationData GetConfigurationData() {
-        List<CategoricalOption> options = itemList.GetData().ConvertAll(x => x as CategoricalOption);
-        return new CategoricalValue(new List<CategoricalOption>(options));
-    }
 
-    private string Validate() {
-        return itemList.listItems.Count < 1 ? "Please assign add at least one option to the list" : "OK";
-    }
 }
 
