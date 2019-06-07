@@ -8,5 +8,5 @@ public abstract class TrainingItemView : MonoBehaviour {
 }
 
 public class CustomerTrainingView: TrainingItemView {
-    public Text id, arrears, satisfaction;
+    public Text id;
 }

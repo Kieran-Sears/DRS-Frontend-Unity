@@ -19,11 +19,15 @@ public class Customer : TrainingItem {
     public override void InitItemView(GameObject item, int index) {
         CustomerTrainingView itemView = item.GetComponent<CustomerTrainingView>();
         itemView.id.text = id;
-        itemView.arrears.text = arrears.ToString();
-        itemView.satisfaction.text = satisfaction.ToString();
         view = itemView;
     }
 
+}
+
+public class Attribute : TrainingItem {
+    public override void InitItemView(GameObject item, int index) {
+        AttributeTrainingView view = item.GetComponent<AttributeTrainingView>();
+    }
 }
 
 //public class Action : TrainingItem {
