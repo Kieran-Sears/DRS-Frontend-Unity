@@ -4,21 +4,23 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class CategoricalCreationForm : CreationForm {
+
     public ItemListController optionsController;
 
     public override void Prepopulate(ConfigurationData option) {
         optionsController.AddItem(option);
     }
 
-    public override string Validate() {
-        return optionsController.listItems.Count < 1 ? "Please assign add at least two options to the list" : "OK";
+    public override string Validate(ConfigurationData data) {
+        CategoricalValue categorical = data as CategoricalValue;
+        return categorical.options.Count < 2 ? "Please add option configurations (2 minimum)" : "OK";
     }
 
     public override void ClearFields() {
         optionsController.ClearItems();
     }
 
-    public override ConfigurationData GetConfigurationData() {
+    public override ConfigurationData GetData() {
         List<string> names = optionsController.GetLabelNames();
         return new CategoricalValue(optionsController.GetLabelNames());
     }

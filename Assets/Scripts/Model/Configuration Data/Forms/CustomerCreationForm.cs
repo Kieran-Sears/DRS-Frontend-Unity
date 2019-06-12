@@ -16,25 +16,25 @@ public class CustomerCreationForm : CreationForm {
 
    public override void Prepopulate(ConfigurationData data) {
         CustomerConfigurationData customer = data as CustomerConfigurationData;
-        nameInput.text = customer.id;
+        nameInput.text = customer.name;
         proportionInput.text = customer.proportion.ToString();
         arrears.value = customer.arrears;
         satisfaction.value = customer.satisfaction;
         arrears.display.text = customer.arrears.ToString();
         satisfaction.display.text = customer.satisfaction.ToString();
         customer.attributeConfigurations.ForEach((attr) => {
-            AttributeConfigurationData a = CreationManager.ATTRIBUTES.Find(x => x.id == attr);
-            attributesController.AddItem(a); attributesController.UpdateItemLabel(a.id);
+            AttributeConfigurationData a = CreationManager.ATTRIBUTES.Find(x => x.name == attr);
+            attributesController.AddItem(a); attributesController.UpdateItemLabel(a.name);
         });
     }
 
-    public override string Validate() {
+    public override string Validate(ConfigurationData data) {
+        CustomerConfigurationData customer = data as CustomerConfigurationData;
         string ret = "OK";
-        ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign a Customer Name" : "OK";
-        ret = CreationManager.CUSTOMERS.Find(x => x.id == Utilities.UpperFirst(nameInput.text)) != null ? "Please assign a unique Customer Name" : ret;
-        ret = Utilities.NumberValidation(proportionInput.text, 1, 100) ? "Please assign a proportion number between 1 and 100" : "OK";
-        ret = arrears.value == null ? "Please assign a value to arrears" : "OK";
-        ret = satisfaction.value == null ? "Please assign a value to satisfaction" : "OK"; 
+        ret = string.IsNullOrEmpty(customer.name) ? "Please assign a Customer Name" : "OK";
+        ret = Utilities.NumberValidation(customer.proportion, 1, 100) ? "Please assign a proportion number between 1 and 100" : "OK";
+        ret = customer.arrears == null ? "Please assign a value to arrears" : "OK";
+        ret = customer.satisfaction == null ? "Please assign a value to satisfaction" : "OK"; 
         return ret;
     }
 
@@ -44,8 +44,8 @@ public class CustomerCreationForm : CreationForm {
         attributesController.ClearItems();
     }
 
-    public override ConfigurationData GetConfigurationData() {
-        CustomerConfigurationData customer = CreationManager.CUSTOMERS.Find(x => x.id == Utilities.UpperFirst(nameInput.text));
+    public override ConfigurationData GetData() {
+        CustomerConfigurationData customer = CreationManager.CUSTOMERS.Find(x => x.name == Utilities.UpperFirst(nameInput.text));
 
         if (customer == null) {
             customer = new CustomerConfigurationData(

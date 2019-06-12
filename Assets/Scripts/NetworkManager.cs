@@ -9,7 +9,7 @@ using UnityEngine.Networking;
 public class NetworkManager : MonoBehaviour {
 
     private static NetworkManager _instance;
-    private const string TRAIN_URL = "http://localhost:8080/train";
+    private const string TRAIN_URL = "http://localhost:8080/configure";
 
     public static NetworkManager Instance {
         get {
@@ -26,7 +26,7 @@ public class NetworkManager : MonoBehaviour {
         }
     }
 
-    public IEnumerator SendConfigurationRequest(Configurations confs, Action<List<Customer>> onComplete) {
+    public IEnumerator SendConfigurationRequest(Configurations confs, Action<TrainingData> onComplete) {
         string jsonString = JsonConvert.SerializeObject(confs, new StringEnumConverter());
         Debug.Log(confs.ToString());
         Debug.Log(jsonString);
@@ -42,7 +42,7 @@ public class NetworkManager : MonoBehaviour {
             string results = request.downloadHandler.text;
             Debug.Log("Printing results...");
             Debug.Log(results);
-            onComplete(JsonConvert.DeserializeObject<List<Customer>>(results));
+            onComplete(JsonConvert.DeserializeObject<TrainingData>(results));
         }
 
        

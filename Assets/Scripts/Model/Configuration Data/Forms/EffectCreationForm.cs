@@ -22,10 +22,10 @@ public class EffectCreationForm : CreationForm {
       target.value = target.options.FindIndex((i) => { return i.text.Equals(effect.type); });
     }
 
-    public override string Validate() {
+    public override string Validate(ConfigurationData data) {
+        EffectConfigurationData effect = data as EffectConfigurationData;
         string ret = "OK";
-        ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign an Effect Name" : ret;
-        // ret = CreationManager.EFFECTS.Find(x => x.id == UpperFirst(nameInput.text)) != null ? "Please assign a unique Effect Name" : ret;
+        ret = string.IsNullOrEmpty(effect.name) ? "Please assign an Effect Name" : ret;
         return ret;
     }
 
@@ -35,8 +35,8 @@ public class EffectCreationForm : CreationForm {
         target.value = 0;
     }
 
-    public override ConfigurationData GetConfigurationData() {
-        EffectConfigurationData effect = CreationManager.EFFECTS.Find(x => x.id == Utilities.UpperFirst(nameInput.text));
+    public override ConfigurationData GetData() {
+        EffectConfigurationData effect = CreationManager.EFFECTS.Find(x => x.name == Utilities.UpperFirst(nameInput.text));
         if (effect == null) {
             effect = new EffectConfigurationData(Utilities.UpperFirst(nameInput.text), (EffectType)type.value, Utilities.UpperFirst(target.options[target.value].text));
             CreationManager.EFFECTS.Add(effect);
@@ -51,7 +51,7 @@ public class EffectCreationForm : CreationForm {
 
         List<string> attributes = new List<string>();
         foreach (AttributeConfigurationData item in CreationManager.ATTRIBUTES) {
-                attributes.Add(item.id);
+                attributes.Add(item.name);
         }
         target.ClearOptions();
         target.AddOptions(attributes.Union<string>(new List<string> { "Arrears", "Satisfaction" }).ToList());

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using static Enums;
 
 public class ItemListController : FormCaller {
     public GameObject listItemPrefab;
@@ -35,12 +36,18 @@ public class ItemListController : FormCaller {
         listItems.Clear();
     }
 
-    public override DelegateHolder SetFormDelegates(DelegateHolder delegates) {
+    public override ConfigurationDelegateHolder SetFormDelegates(ConfigurationDelegateHolder delegates) {
         delegates.nameChangeDelegate += UpdateItemLabel;
+        delegates.validationDelegate += DisallowDuplicates;
+        delegates.submissionDelegate += CreationManager.SaveConfigurationItem;
         return delegates;
     }
 
     public void UpdateItemLabel(string newName) {
         listItems.Last().label.text = newName;
+    }
+
+    private string DisallowDuplicates(ConfigurationData data) {
+       return listItems.Find(x => x.name == data.name) != null ? $"Please assign a unique {data.kind} Name" : "OK";
     }
 }

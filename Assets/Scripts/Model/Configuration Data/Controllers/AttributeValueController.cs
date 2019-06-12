@@ -15,7 +15,7 @@ public class AttributeValueController : FormCaller {
         throw new System.NotImplementedException();
     }
 
-    public override DelegateHolder SetFormDelegates(DelegateHolder delegates) {
+    public override ConfigurationDelegateHolder SetFormDelegates(ConfigurationDelegateHolder delegates) {
         delegates.submissionDelegate += SetValue;
         return delegates;
     }

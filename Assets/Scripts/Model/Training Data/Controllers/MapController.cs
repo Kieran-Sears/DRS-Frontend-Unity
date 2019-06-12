@@ -1,36 +1,31 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using static Enums;
 
+public class MapController : TrainingController {
 
-public class MapController : MonoBehaviour {
-
-    public RectTransform prefab;
-    public Text countText;
-    public ScrollRect scrollView;
-    public RectTransform content;
-
-    public List<TrainingItemView> itemList = new List<TrainingItemView>();
-
-    public void UpdateItems(List<TrainingItem> data) {
-        int count = 0;
-        int.TryParse(countText.text, out count);
-        foreach (GameObject item in content) {
-            Destroy(item);
-        }
-
-        foreach (TrainingItem trainingData in data) {
-            GameObject instance = Instantiate(prefab.gameObject, content);
-            trainingData.InitItemView(instance, count);
-            itemList.Add(trainingData.view);
-            count++;
-        }   
+    public void DrawLines(List<(AttributeTrainingView, ActionTrainingView, EffectType)> pairs) {
+        for (int i = 0; i < pairs.Count; i++) {
+            EffectTrainingView effectView = itemList[i] as EffectTrainingView;
+            (AttributeTrainingView att, ActionTrainingView act, EffectType type) = pairs[i];
+            effectView.LinkAttributeToAction(att, act, type);
+        }    
     }
 
-    //void InitItemView(Customer customerData, CustomerTrainItem item, int index) {
-    //    item.name.text = customerData.id;
-    //    item.arrears.text = customerData.arrears.ToString();
-    //    item.satisfaction.text = customerData.satisfaction.ToString();
-    //}
+    public override void AddItems(List<TrainingItem> data) {
+        foreach (TrainingItem trainingData in data) {
+            GameObject instance = Instantiate(prefab.gameObject, transform);
+            trainingData.InitItemView(instance, delegates);
+            itemList.Add(trainingData.view);
+        }
+    }
+
+    public override void ClearItems() {
+        foreach (Transform child in transform) {
+            Destroy(child.gameObject);
+        }
+        itemList.Clear();
+    }
+
 }

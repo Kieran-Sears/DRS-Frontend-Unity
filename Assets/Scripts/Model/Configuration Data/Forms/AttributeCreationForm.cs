@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using static Enums;
 
 public class AttributeCreationForm : CreationForm {
     public InputField nameInput;
@@ -15,12 +16,12 @@ public class AttributeCreationForm : CreationForm {
 
     public override void Prepopulate(ConfigurationData data) {
         AttributeConfigurationData attribute = data as AttributeConfigurationData;
-        nameInput.text = attribute.id;
+        nameInput.text = attribute.name;
         switch (attribute.value.kind) {
-            case "scalar":
+            case ConfigItemTypes.Scalar:
                 scalarCaller.AddItem(attribute.value);
                 break;
-            case "categorical":
+            case ConfigItemTypes.Categorical:
                 categoricalCaller.AddItem(attribute.value);
                 break;
             default:
@@ -28,10 +29,10 @@ public class AttributeCreationForm : CreationForm {
         }
     }
 
-    public override string Validate() {
+    public override string Validate(ConfigurationData data) {
+        AttributeConfigurationData attribute = data as AttributeConfigurationData;
         string ret = "OK";
-        ret = string.IsNullOrEmpty(nameInput.text) ? "Please assign a Attribute Name" : ret;
-        ret = CreationManager.ATTRIBUTES.Find(x => x.id == Utilities.UpperFirst(nameInput.text)) != null ? "Please assign a unique Attribute Name" : ret;
+        ret = string.IsNullOrEmpty(attribute.name) ? "Please assign a Attribute Name" : ret;
         return ret;
     }
 
@@ -45,15 +46,11 @@ Scalar: A value which has an exact measure and falls within a continuous spectru
 (Note: An option to vary the value over time is also presented for scalar values)";
     }
 
-    public override ConfigurationData GetConfigurationData() {
-        //AttributeConfigurationData attribute = CreationManager.ATTRIBUTES.Find(x => x.id == UpperFirst(nameInput.text));
-        //if (attribute == null) {
+    public override ConfigurationData GetData() {
         Value value = null;
         value = scalarCaller.value == null ? value : scalarCaller.value;
         value = categoricalCaller.value == null ? value : categoricalCaller.value;
         AttributeConfigurationData attribute = new AttributeConfigurationData(Utilities.UpperFirst(nameInput.text), value);
-        CreationManager.ATTRIBUTES.Add(attribute);
-        //}
         return attribute;
     }
 }

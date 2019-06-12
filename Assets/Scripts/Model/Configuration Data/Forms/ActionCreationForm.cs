@@ -14,17 +14,17 @@ public class ActionCreationForm : CreationForm {
 
     public override void Prepopulate(ConfigurationData data) {
         ActionConfigurationData action = data as ActionConfigurationData;
-        label.text = data.id;
+        label.text = data.name;
         action.effectConfigurations.ForEach((attr) => {
-            EffectConfigurationData effect = CreationManager.EFFECTS.Find(x => x.id == data.id);
+            EffectConfigurationData effect = CreationManager.EFFECTS.Find(x => x.name == data.name);
             effectsController.AddItem(effect);
         });
     }
  
-    public override string Validate() {
+    public override string Validate(ConfigurationData data) {
+        ActionConfigurationData action = data as ActionConfigurationData;
         string ret = "OK";
-        ret = string.IsNullOrEmpty(label.text) ? "Please assign an Action Name" : "OK";
-        ret = CreationManager.ACTIONS.Find(x => x.id == Utilities.UpperFirst(label.text)) != null ? "Please assign a unique Action Name" : ret;
+        ret = string.IsNullOrEmpty(action.name) ? "Please assign an Action Name" : "OK";
         return ret;
     }
 
@@ -34,8 +34,8 @@ public class ActionCreationForm : CreationForm {
         effectsController.ClearItems();
     }
 
-    public override ConfigurationData GetConfigurationData() {
-        ActionConfigurationData action = CreationManager.ACTIONS.Find(x => x.id == Utilities.UpperFirst(label.text));
+    public override ConfigurationData GetData() {
+        ActionConfigurationData action = CreationManager.ACTIONS.Find(x => x.name == Utilities.UpperFirst(label.text));
         if (action == null) {
             action = new ActionConfigurationData(
                 label: Utilities.UpperFirst(label.text),

@@ -8,8 +8,9 @@ public class ConfigurationController : FormCaller {
         CreationManager.Instance.CreateConfigurationItem(this);
     }
 
-    public override DelegateHolder SetFormDelegates(DelegateHolder delegates) {
+    public override ConfigurationDelegateHolder SetFormDelegates(ConfigurationDelegateHolder delegates) {
         delegates.submissionDelegate += Main.Instance.LoadTrainUI;
+        delegates.submissionDelegate += x => CreationManager.CONFIGURATION = x as Configurations;
         return delegates;
     }
 

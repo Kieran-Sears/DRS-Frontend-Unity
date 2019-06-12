@@ -4,12 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using static Enums;
 
-public class DelegateHolder {
+public class ConfigurationDelegateHolder {
     public delegate void CancelConfigurationDataDelegate();
     public CancelConfigurationDataDelegate cancelationDelegate = null;
 
     public delegate void SubmitConfigurationDataDelegate(ConfigurationData val);
     public SubmitConfigurationDataDelegate submissionDelegate = null;
+
+    public delegate string ValidateConfigurationDataDelegate(ConfigurationData val);
+    public ValidateConfigurationDataDelegate validationDelegate = null;
 
     public delegate void FormFieldChangeDelegate(string newName);
     public FormFieldChangeDelegate nameChangeDelegate = null;
@@ -17,6 +20,7 @@ public class DelegateHolder {
     public void ClearAllDelegates() {
         cancelationDelegate = null;
         submissionDelegate = null;
+        validationDelegate = null;
         nameChangeDelegate = null;
     }
 }
@@ -31,27 +35,23 @@ public abstract class FormCaller : MonoBehaviour {
 
     public ConfigItemTypes type;
     public abstract void AddItem();
-    public abstract DelegateHolder SetFormDelegates(DelegateHolder delegates);
+    public abstract ConfigurationDelegateHolder SetFormDelegates(ConfigurationDelegateHolder delegates);
 }
 
 public static class Utilities {
 
     public static string UpperFirst(string text) {
+        if (string.IsNullOrEmpty(text)) return "";
         return char.ToUpper(text[0]) +
             ((text.Length > 1) ? text.Substring(1).ToLower() : string.Empty);
     }
 
-    public static bool NumberValidation(string text, int min = -1, int max = -1) {
-        bool ret = true;
-        int proportion = int.Parse(text);
-        ret = string.IsNullOrEmpty(text);
-        if (min != -1) {
-            ret = proportion < 1;
-        }
-        if (max != -1) {
-            ret = proportion > 100;
-        }
-        return ret;
+    public static bool NumberValidation(double num, double min = double.NaN, double max = double.NaN) {
+        bool minReq;
+        bool maxReq;
+        if (double.IsNaN(min)) minReq = true; else minReq = num >= min;
+        if (double.IsNaN(max)) maxReq = true; else maxReq = num <= max;
+        return (!double.IsNaN(num)) & minReq & maxReq;
     }
 }
 
@@ -60,7 +60,7 @@ public abstract class CreationForm : MonoBehaviour {
     public Button cancelButton;
     public FormCaller caller;
     public ErrorMessage errorMessage;
-    public DelegateHolder delegates = new DelegateHolder();
+    public ConfigurationDelegateHolder delegates = new ConfigurationDelegateHolder();
 
     void OnDisable() {
         delegates.ClearAllDelegates();
@@ -69,14 +69,15 @@ public abstract class CreationForm : MonoBehaviour {
 
     void OnEnable() {
         delegates = caller.SetFormDelegates(delegates);
+        delegates.validationDelegate += Validate;
         delegates.submissionDelegate += x => gameObject.SetActive(false);
         submitButton.onClick.AddListener(Submit);
     }
 
     public void Submit() {
-        string validation = Validate();
+        ConfigurationData data = GetData();
+        string validation = delegates.validationDelegate(data);
         if (validation == "OK") {
-            ConfigurationData data = GetConfigurationData();
             Debug.Log($"Submit added:\n     {this.gameObject.name}\n\nCreationConfiguration:\n    {data}");
             delegates.submissionDelegate(data);
             gameObject.SetActive(false);
@@ -87,8 +88,8 @@ public abstract class CreationForm : MonoBehaviour {
 
     public abstract void ClearFields();
     public abstract void Prepopulate(ConfigurationData data);
-    public abstract ConfigurationData GetConfigurationData();
-    public abstract string Validate();
+    public abstract ConfigurationData GetData();
+    public abstract string Validate(ConfigurationData data);
 }
 
 public class CreationManager : MonoBehaviour {
@@ -105,7 +106,6 @@ public class CreationManager : MonoBehaviour {
     public EffectCreationForm effectCreationForm;
 
     public static Configurations CONFIGURATION;
-    public static SimulationConfigurationData SIMULATION;
     public static List<AttributeConfigurationData> ATTRIBUTES = new List<AttributeConfigurationData>();
     public static List<CategoricalOptionConfigurationData> OPTIONS = new List<CategoricalOptionConfigurationData>();
     public static List<CustomerConfigurationData> CUSTOMERS = new List<CustomerConfigurationData>();
@@ -164,13 +164,6 @@ public class CreationManager : MonoBehaviour {
     private ConfigurationData GetPrepopulateData(ConfigItemTypes type) {
         switch (type) {
             case ConfigItemTypes.Customer:
-                // TODO?
-                //if (ATTRIBUTES.Find(x => x.id == "Arrears") == null) {
-                //    ATTRIBUTES.Add(new AttributeConfigurationData("Arrears", null));
-                //}
-                //if (ATTRIBUTES.Find(x => x.id == "Satisfaction") == null) {
-                //    ATTRIBUTES.Add(new AttributeConfigurationData("Satisfaction", null));
-                //}
                 return new CustomerConfigurationData(null, 0, new ScalarValue(min: 50, max: 1000, variance: VarianceType.None), new ScalarValue(min: 0, max: 100, variance: VarianceType.None), new List<string>());
             default:
                 return null;
@@ -184,6 +177,28 @@ public class CreationManager : MonoBehaviour {
             data = GetPrepopulateData(caller.type);
         }
         form = GetForm(caller, data);
+    }
+
+    public static void SaveConfigurationItem(ConfigurationData data) {
+        switch (data.kind) {
+            case ConfigItemTypes.Customer:
+                CUSTOMERS.Add(data as CustomerConfigurationData);
+                break;
+            case ConfigItemTypes.Action:
+                ACTIONS.Add(data as ActionConfigurationData);
+                break;
+            case ConfigItemTypes.Attribute:
+                ATTRIBUTES.Add(data as AttributeConfigurationData);
+                break;
+            case ConfigItemTypes.CategoricalOption:
+                OPTIONS.Add(data as CategoricalOptionConfigurationData);
+                break;
+            case ConfigItemTypes.Effect:
+                EFFECTS.Add(data as EffectConfigurationData);
+                break;
+            default:
+                throw new System.Exception("This ConfigurationData type is not a collection and so cannot be stored.");
+        }
     }
 
 }

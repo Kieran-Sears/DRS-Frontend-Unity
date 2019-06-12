@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 using static Enums;
+using System.Collections.Generic;
 
 public class Main : MonoBehaviour {
 
@@ -12,7 +11,7 @@ public class Main : MonoBehaviour {
     public GameObject playPanel;
 
     public ConfigurationController configure;
-    public TrainingController train; 
+    public TrainingManager train; 
 
 
     private static Main _instance;
@@ -35,13 +34,15 @@ public class Main : MonoBehaviour {
 
     void Start() {
         SetAllPanelsInactive();
+
         // FOR TESTING:
-        ScalarValue arrearsScalar = new ScalarValue(0.0, 10.0, VarianceType.None);
-        ScalarValue satisfactionScalar = new ScalarValue(0.0, 10.0, VarianceType.None);
+        ScalarValue arrearsScalar = new ScalarValue(0, 1000, VarianceType.None);
+        ScalarValue satisfactionScalar = new ScalarValue(0, 100, VarianceType.None);
 
-        CustomerConfigurationData customer1 = new CustomerConfigurationData("Customer1", 50, arrearsScalar, satisfactionScalar,  new List<string> { "Arrears", "Satisfaction" });
+        CustomerConfigurationData customer1 = new CustomerConfigurationData("Customer1", 10, arrearsScalar, satisfactionScalar, new List<string> { "Arrears", "Satisfaction" });
+        CustomerConfigurationData customer2 = new CustomerConfigurationData("Customer2", 10, arrearsScalar, satisfactionScalar, new List<string> { "Arrears", "Satisfaction" });
 
-        SimulationConfigurationData simulation = new SimulationConfigurationData("simulation 1", 0, 10, 100);
+        SimulationConfigurationData simulation = new SimulationConfigurationData("simulation 1", 0, 10, 30);
 
         AttributeConfigurationData arrears = new AttributeConfigurationData("Arrears", arrearsScalar);
         AttributeConfigurationData satisfaction = new AttributeConfigurationData("Satisfaction", satisfactionScalar);
@@ -53,15 +54,15 @@ public class Main : MonoBehaviour {
         EffectConfigurationData effect2 = new EffectConfigurationData("Satisfy", EffectType.Effect, "Satisfaction");
         EffectConfigurationData effect3 = new EffectConfigurationData("Cooperative", EffectType.Affect, "Satisfaction");
         EffectConfigurationData effect4 = new EffectConfigurationData("Dis-Satisfy", EffectType.Effect, "Satisfaction");
-   
+
         Configurations conf = new Configurations(
-            simulation, new List<CustomerConfigurationData> { customer1 }, 
+            simulation, new List<CustomerConfigurationData> { customer1, customer2 },
             new List<ActionConfigurationData> { action1, action2 },
             new List<EffectConfigurationData> { effect1, effect2, effect3, effect4 },
             new List<AttributeConfigurationData> { arrears, satisfaction },
             new List<CategoricalOptionConfigurationData> { });
 
-        LoadTrainUI(conf);           
+        LoadTrainUI(conf);
     }
 
     public void SetAllPanelsInactive() {
@@ -75,7 +76,7 @@ public class Main : MonoBehaviour {
         Configurations configurations = data as Configurations;
 
         StartCoroutine(NetworkManager.Instance.SendConfigurationRequest(configurations, results => {
-            train.customerMap.UpdateItems(results.ConvertAll(x => x as TrainingItem));
+            train.Init(configurations, results);
         } ));
 
         SetAllPanelsInactive();

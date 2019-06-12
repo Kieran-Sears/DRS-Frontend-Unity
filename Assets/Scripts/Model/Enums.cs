@@ -12,6 +12,7 @@ public class Enums : MonoBehaviour
         Scalar,
         CategoricalOption,
         Configuration,
+        Simulation,
         Effect
     }
 
