@@ -9,7 +9,7 @@ using UnityEngine.Networking;
 public class NetworkManager : MonoBehaviour {
 
     private static NetworkManager _instance;
-    private const string TRAIN_URL = "http://localhost:8080/configure";
+    private const string BASE_URL = "http://localhost:8080";
 
     public static NetworkManager Instance {
         get {
@@ -30,7 +30,7 @@ public class NetworkManager : MonoBehaviour {
         string jsonString = JsonConvert.SerializeObject(confs, new StringEnumConverter());
         Debug.Log(confs.ToString());
         Debug.Log(jsonString);
-        UnityWebRequest request = UnityWebRequest.Put(TRAIN_URL, jsonString);
+        UnityWebRequest request = UnityWebRequest.Put(BASE_URL + "/configure", jsonString);
         request.SetRequestHeader("Content-Type", "application/json");
 
         yield return request.SendWebRequest();
@@ -48,6 +48,27 @@ public class NetworkManager : MonoBehaviour {
        
     }
 
- 
+    public IEnumerator SendTrainingRequest(TrainingData data, Action<PlayData> onComplete) {
+        string jsonString = JsonConvert.SerializeObject(data, new StringEnumConverter());
+        Debug.Log(data.ToString());
+        Debug.Log(jsonString);
+        UnityWebRequest request = UnityWebRequest.Put(BASE_URL + "/train", jsonString);
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+
+        Debug.Log("Response Code: " + request.responseCode);
+        if (request.isNetworkError || request.isHttpError) {
+            Debug.Log(request.error);
+        } else {
+            string results = request.downloadHandler.text;
+            Debug.Log("Printing results...");
+            Debug.Log(results);
+            onComplete(JsonConvert.DeserializeObject<PlayData>(results));
+        }
+
+
+    }
+
 
 }

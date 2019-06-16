@@ -15,7 +15,7 @@ public class ListController : TrainingController {
         foreach (TrainingItem trainingData in data) {
             GameObject instance = Instantiate(prefab.gameObject, content);
             trainingData.InitItemView(instance, delegates);
-            itemList.Add(trainingData.view);
+            itemList.Add(trainingData);
             countText.text = counter.ToString();
             counter++;
         }   

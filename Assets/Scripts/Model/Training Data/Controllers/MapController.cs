@@ -7,7 +7,7 @@ public class MapController : TrainingController {
 
     public void DrawLines(List<(AttributeTrainingView, ActionTrainingView, EffectType)> pairs) {
         for (int i = 0; i < pairs.Count; i++) {
-            EffectTrainingView effectView = itemList[i] as EffectTrainingView;
+            EffectTrainingView effectView = itemList[i].view as EffectTrainingView;
             (AttributeTrainingView att, ActionTrainingView act, EffectType type) = pairs[i];
             effectView.LinkAttributeToAction(att, act, type);
         }    
@@ -17,7 +17,7 @@ public class MapController : TrainingController {
         foreach (TrainingItem trainingData in data) {
             GameObject instance = Instantiate(prefab.gameObject, transform);
             trainingData.InitItemView(instance, delegates);
-            itemList.Add(trainingData.view);
+            itemList.Add(trainingData);
         }
     }
 

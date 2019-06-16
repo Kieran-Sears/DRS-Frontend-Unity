@@ -6,6 +6,11 @@ using static Enums;
 public class TrainingData {
     public List<Customer> customers;
     public List<Action> actions;
+
+    public TrainingData(List<Customer> customers, List<Action> actions) {
+        this.customers = customers;
+        this.actions = actions;
+    }
 }
 
 public abstract class TrainingItemView : MonoBehaviour {
@@ -82,8 +87,16 @@ public class Attribute : TrainingItem {
 
 public class Action : TrainingItem {
 
+    public string target;
     public ActionType type;
     public List<Effect> effects;
+
+    public Action(string name, string target, ActionType type, List<Effect> effects) {
+        this.name = name;
+        this.target = target;
+        this.type = type;
+        this.effects = effects;
+    }
 
     public override void InitItemView(GameObject item, TrainingDelegateHolder delegates) {
         ActionTrainingView view = item.GetComponent<ActionTrainingView>();
@@ -97,9 +110,6 @@ public class Action : TrainingItem {
         base.view = view;
     }
 
-    public void DotEffectLines() {
-
-    }
 }
 
 public class Effect : TrainingItem {
@@ -108,7 +118,8 @@ public class Effect : TrainingItem {
     public double value = double.NaN;
     public double deviation = double.NaN;
 
-    public Effect(EffectType type, string target, double value, double deviation) {
+    public Effect(string name, EffectType type, string target, double value, double deviation) {
+        this.name = name;
         this.type = type;
         this.target = target;
         this.value = value;
@@ -119,10 +130,6 @@ public class Effect : TrainingItem {
         EffectTrainingView view = item.GetComponent<EffectTrainingView>();
         view.arrowButton.onClick.AddListener(() => delegates.selectionDelegate(this));
         base.view = view;
-    }
-
-    public void UpdateValuesFromView() {
-
     }
 
 }

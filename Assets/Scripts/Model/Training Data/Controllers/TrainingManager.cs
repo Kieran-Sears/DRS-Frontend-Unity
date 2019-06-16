@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using static Enums;
 
 public class TrainingManager : MonoBehaviour {
@@ -13,7 +14,11 @@ public class TrainingManager : MonoBehaviour {
     public EffectTrainingForm effectForm;
     public ErrorMessage errorMessage;
 
+    public Button submit;
+
     public void Start() {
+        TrainingData returnData = new TrainingData(customers.itemList.ConvertAll(x => x as Customer), actions.itemList.ConvertAll(x => x as Action));
+        submit.onClick.AddListener(() => Main.Instance.LoadPlayUI(returnData));
         ResetDelegates();
     }
 
@@ -53,7 +58,7 @@ public class TrainingManager : MonoBehaviour {
 
 
         List<(AttributeTrainingView, ActionTrainingView, EffectType)> attLinks = action.effects.ConvertAll(effect => {
-            AttributeTrainingView attView = attributes.itemList.Find(attribute => attribute.name.text == effect.target) as AttributeTrainingView;
+            AttributeTrainingView attView = attributes.itemList.Find(attribute => attribute.name == effect.target).view as AttributeTrainingView;
             return (attView, actionView, effect.type);
         });
 
@@ -62,7 +67,7 @@ public class TrainingManager : MonoBehaviour {
 
     public void LoadEffectForm(TrainingItem item) {
         Effect effect = item as Effect;
-        AttributeTrainingView attView = attributes.itemList.Find(att => att.name.text == effect.target) as AttributeTrainingView;
+        AttributeTrainingView attView = attributes.itemList.Find(att => att.name == effect.target).view as AttributeTrainingView;
         effectForm.Prepopulate(effect, attView.value.text);
         effectForm.submit.onClick.AddListener(() => effects.delegates.submissionDelegate(effect));
         effectForm.gameObject.SetActive(true);
@@ -124,7 +129,7 @@ public abstract class TrainingController : MonoBehaviour {
 
     public RectTransform prefab;
 
-    public List<TrainingItemView> itemList = new List<TrainingItemView>();
+    public List<TrainingItem> itemList = new List<TrainingItem>();
 
     public TrainingItem currentlySelected;
 

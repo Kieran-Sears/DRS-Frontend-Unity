@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using static Enums;
 using System.Collections.Generic;
+using System.Linq;
 
 public class Main : MonoBehaviour {
 
@@ -11,8 +12,8 @@ public class Main : MonoBehaviour {
     public GameObject playPanel;
 
     public ConfigurationController configure;
-    public TrainingManager train; 
-
+    public TrainingManager train;
+    public PlayManager play;
 
     private static Main _instance;
    
@@ -35,7 +36,47 @@ public class Main : MonoBehaviour {
     void Start() {
         SetAllPanelsInactive();
 
-        // FOR TESTING:
+        // FOR TESTING
+        Configurations configurations = TestConfiguration();
+        StartCoroutine(NetworkManager.Instance.SendConfigurationRequest(TestConfiguration(), configResults => {
+            StartCoroutine(NetworkManager.Instance.SendTrainingRequest(TestTraining(configResults), trainingResults => {
+                play.Init(trainingResults);
+            }));
+        }));
+    }
+
+    public void SetAllPanelsInactive() {
+        configurePanel.SetActive(false);
+        trainPanel.SetActive(false);
+        testPanel.SetActive(false);
+        playPanel.SetActive(false);
+    }
+
+    public void LoadTrainUI(ConfigurationData data) {
+        Configurations configurations = data as Configurations;
+
+        StartCoroutine(NetworkManager.Instance.SendConfigurationRequest(configurations, results => {
+            train.Init(configurations, results);
+        } ));
+
+        SetAllPanelsInactive();
+        trainPanel.SetActive(true);
+    }
+
+    public void LoadTestUI() {
+        SetAllPanelsInactive();
+        testPanel.SetActive(true);
+    }
+
+    public void LoadPlayUI(TrainingData data) {
+        StartCoroutine(NetworkManager.Instance.SendTrainingRequest(data, results => {
+            play.Init(results);
+        }));
+        SetAllPanelsInactive();
+        playPanel.SetActive(true);
+    }
+
+    public Configurations TestConfiguration() {
         ScalarValue arrearsScalar = new ScalarValue(0, 1000, VarianceType.None);
         ScalarValue satisfactionScalar = new ScalarValue(0, 100, VarianceType.None);
 
@@ -62,34 +103,23 @@ public class Main : MonoBehaviour {
             new List<AttributeConfigurationData> { arrears, satisfaction },
             new List<CategoricalOptionConfigurationData> { });
 
-        LoadTrainUI(conf);
+        return conf;
     }
 
-    public void SetAllPanelsInactive() {
-        configurePanel.SetActive(false);
-        trainPanel.SetActive(false);
-        testPanel.SetActive(false);
-        playPanel.SetActive(false);
-    }
-
-    public void LoadTrainUI(ConfigurationData data) {
-        Configurations configurations = data as Configurations;
-
-        StartCoroutine(NetworkManager.Instance.SendConfigurationRequest(configurations, results => {
-            train.Init(configurations, results);
-        } ));
-
-        SetAllPanelsInactive();
-        trainPanel.SetActive(true);
-    }
-
-    public void LoadTestUI() {
-        SetAllPanelsInactive();
-        testPanel.SetActive(true);
-    }
-
-    public void LoadPlayUI() {
-        SetAllPanelsInactive();
-        playPanel.SetActive(true);
+    public List<Action> TestTraining(TrainingData data) {
+      List<Action> payOffDebtActions = data.customers.ConvertAll(customer => {
+          Effect zeroArrears = new Effect("ZeroArrears", EffectType.Effect, "Arrears", -customer.arrears, 0);
+          Effect satisfy = new Effect("Satisfy", EffectType.Effect, "Satisfaction", 50, 10);
+          Effect cooperative = new Effect("Cooperative", EffectType.Affect, "Satisfaction", 50, 10);
+          Action payOffDebt = new Action("PayOffDebt", customer.id, ActionType.Customer, new List<Effect> { zeroArrears, satisfy, cooperative });
+          return  payOffDebt;
+        });
+        List<Action> litigateActions = data.customers.ConvertAll(customer => {
+            Effect zeroArrears = new Effect("ZeroArrears", EffectType.Effect, "Arrears", -customer.arrears, 0);
+            Effect dissatisfy = new Effect("Dis-Satisfy", EffectType.Effect, "Satisfaction", -50, 10);
+            Action litigate = new Action("Litigate", customer.id, ActionType.Agent, new List<Effect> { zeroArrears, dissatisfy });
+            return litigate;
+        });
+        return litigateActions.Union(payOffDebtActions).ToList();
     }
 }
